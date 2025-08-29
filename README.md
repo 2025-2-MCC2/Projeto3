@@ -10,7 +10,7 @@
 
 <h1><p align="center"> Nexus City</h1>
 
-## <p align="center"> Nome do Grupo: <br> Visionários da Computação
+## <p align="center"> Nome do Grupo: <br> Dev Leaders
 
 ## <p align="center"> Integrantes <br/> <a href="https://www.linkedin.com/in/pedro-vitor-149051349/">Pedro Vitor</a> &nbsp; <a href="https://www.linkedin.com/in/ricardo-santos-6b92b4346/">Ricardo Oliveira</a> &nbsp; <a href="http://www.linkedin.com/in/stefanysocubertino">Stefany Oliveira</a> &nbsp; <a href="https://br.linkedin.com/in/lucio-vecchio">Lúcio Vecchio</a> 
 
