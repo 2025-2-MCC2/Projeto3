@@ -1,80 +1,118 @@
-# <p align="center"> FECAP - Fundação de Comércio Álvares Penteado
+```sh
+Utilize o site <https://www.toptal.com/developers/gitignore> para gerar seu arquivo gitignore e apague este campo.
+
+Vide tutoriais do PI.
+```
+
+# FECAP - Fundação de Comércio Álvares Penteado
 
 <p align="center">
-      <a href="https://www.fecap.br/">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhZPrRa89Kma0ZZogxm0pi-tCn_TLKeHGVxywp-LXAFGR3B1DPouAJYHgKZGV0XTEf4AE&usqp=CAU" 
-             alt="FECAP - Fundação de Comércio Álvares Penteado" 
-             border="0">
-      </a>
+<a href= "https://www.fecap.br/"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhZPrRa89Kma0ZZogxm0pi-tCn_TLKeHGVxywp-LXAFGR3B1DPouAJYHgKZGV0XTEf4AE&usqp=CAU" alt="FECAP - Fundação de Comércio Álvares Penteado" border="0"></a>
 </p>
 
-<h1><p align="center"> Nexus City</h1>
+# Nome do Projeto
 
-## <p align="center"> Nome do Grupo: <br> Dev Leaders
+## Nome do Grupo
 
-## <p align="center"> Integrantes <br/> <a href="https://www.linkedin.com/in/pedro-vitor-149051349/">Pedro Vitor</a> &nbsp; <a href="https://www.linkedin.com/in/ricardo-santos-6b92b4346/">Ricardo Oliveira</a> &nbsp; <a href="http://www.linkedin.com/in/stefanysocubertino">Stefany Oliveira</a> &nbsp; <a href="https://br.linkedin.com/in/lucio-vecchio">Lúcio Vecchio</a> 
+## Integrantes: <a href="https://www.linkedin.com/in/victorbarq/">Goku Sayajin</a>, <a href="https://www.linkedin.com/in/victorbarq/">Saitama One</a>, <a href="https://www.linkedin.com/in/victorbarq/">Ikki de Fenix</a>, <a href="https://www.linkedin.com/in/victorbarq/">Yusuke Urameshi</a>, <a href="https://www.linkedin.com/in/victorbarq/">Roronoa Zoro</a>
 
-## <p align="center"> Professores Orientadores <br/> <a href="https://www.linkedin.com/in/adriano-valente-534576135/">Adriano Felix Valente</a> &nbsp; <a href="https://www.linkedin.com/in/luisspires/?originalSubdomain=br">Luis Fernando dos Santos Pires</a> &nbsp; <br><a href="https://www.linkedin.com/in/dolemes/">David de Oliveira Lemes</a> &nbsp; <a href="https://www.linkedin.com/in/remuniz/">Renata Muniz do Nascimento</a> &nbsp; <br> <a href="https://www.linkedin.com/in/victorbarq/">Victor Bruno Alexander Rosetti de Queiroz</a> &nbsp; <a href="https://www.linkedin.com/school/fecap/posts/?feedView=all">Joyce Daniele Tavares</a>
+## Professores Orientadores: <a href="https://www.linkedin.com/in/victorbarq/">Dr. Victor Von Doom</a>, <a href="https://www.linkedin.com/in/victorbarq/">Me. Saitama</a>, <a href="https://www.linkedin.com/in/victorbarq/">Dr. Strange</a>, <a href="https://www.linkedin.com/in/victorbarq/">Me. Yoda</a>, <a href="https://www.linkedin.com/in/victorbarq/">Dr. Gero</a>
 
 ## Descrição
 
 <p align="center">
-
-  <img src="https://github.com/2025-1-MCC1/Projeto8/blob/main/Imagens/NEXUS%20CITY.png?raw=true" alt="NOME DO JOGO" border="0"> Game by &nbsp; <a href="https://www.linkedin.com/in/pedro-vitor-149051349/">Pedro Vitor</a> &nbsp; <a href="https://www.linkedin.com/in/ricardo-santos-6b92b4346/">Ricardo Oliveira</a> &nbsp; <a href="http://www.linkedin.com/in/stefanysocubertino">Stefany Oliveira</a> &nbsp; <a href="https://br.linkedin.com/in/lucio-vecchio">Lúcio Vecchio</a> 
+<img src="https://pix4free.org/assets/library/2021-01-20/originals/game.jpg" alt="NOME DO JOGO" border="0">
+  Game by <a href="http://www.nyphotographic.com/">Nick Youngson</a> <a rel="license" href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> <a href="http://pix4free.org/">Pix4free</a>
 </p>
 
 
-
-<h3>🎮História do Jogo <br></h3>
-Leo se muda para uma cidade velha e abandonada, onde sua qualidade de vida não é muito boa. Seu objetivo é modernizar a cidade, tornando-a mais tecnológica e avançada, enfrentando desafios de quebra-cabeças ao longo do caminho. Ao vencer esses desafios, Leo se torna o prefeito, trazendo mais pessoas para morar na cidade.
+De um a dois parágrafos sobre o que é seu projeto e o que ele faz.
+<br><br>
+Meu projeto ajuda estudantes FECAP a configurarem seus githubs.
+<br><br>
+May the force be with you!
+<br><br>
 
 ## 🛠 Estrutura de pastas
 
-&emsp;|-->Documentos/Entregas<br>
-&emsp;&emsp;|-->Entrega 1 <br>
-&emsp;&emsp;&emsp;|-->Algoritmos e Lógica de Programação <br>
-&emsp;&emsp;&emsp;|-->Calculo 1 <br>
-&emsp;&emsp;&emsp;|-->Jogos Digitais e Sistema Digitais <br>
-&emsp;&emsp;&emsp;|-->Projeto interdisciplinar Jogos Digitais <br>
-&emsp;&emsp;&emsp;|-->Ética e Pensamento Computacional <br>
-&emsp;&emsp;|-->Entrega 2 <br>
-&emsp;&emsp;&emsp;|-->Algoritmos e Lógica de Programação <br>
-&emsp;&emsp;&emsp;|-->Calculo 1 <br>
-&emsp;&emsp;&emsp;|-->Jogos Digitais e Sistema Digitais <br>
-&emsp;&emsp;&emsp;|-->Projeto interdisciplinar Jogos Digitais <br>
-&emsp;&emsp;&emsp;|-->Ética e Pensamento Computacional <br>
-|-->Executáveis/Build2<br>
-&emsp;|-->windows<br>
-&emsp;|-->web<br>
+-Raiz<br>
+|<br>
+|-->documentos<br>
+  &emsp;|-->antigos<br>
+  &emsp;|Documentação.docx<br>
+|-->executáveis<br>
+  &emsp;|-->windows<br>
+  &emsp;|-->android<br>
+  &emsp;|-->HTML<br>
 |-->imagens<br>
-&emsp;|-->Personagem <br>
 |-->src<br>
-&emsp;|-->Backend/Nexus City<br>
+  &emsp;|-->Backend<br>
+  &emsp;|-->Frontend<br>
+|readme.md<br>
 
-<b>documentos</b>: Toda a documentação estará nesta pasta.<br>
-<b>Executaveis/Build2</b>: Executáveis do projeto devem estar nesta pasta.<br>
-<b>imagens</b>: Imagens do jogo <br>
-<b>src</b>: Pasta que contém o código fonte.<br>
+A pasta raiz contem dois arquivos que devem ser alterados:
+
+<b>README.MD</b>: Arquivo que serve como guia e explicação geral sobre seu projeto. O mesmo que você está lendo agora.
+
+Há também 4 pastas que seguem da seguinte forma:
+
+<b>documentos</b>: Toda a documentação estará nesta pasta.
+
+<b>executáveis</b>: Binários e executáveis do projeto devem estar nesta pasta.
+
+<b>imagens</b>: Imagens do sistema
+
+<b>src</b>: Pasta que contém o código fonte.
 
 ## 🛠 Instalação
 
-<h3>Não há instalação! Apenas executável!</h3>
-Encontre o JOGO na pasta Executaveis/Build2 e execute-o como quiser. &nbsp; <a href="https://github.com/2025-1-MCC1/Projeto8/tree/main/Executaveis/Build2">AQUI</a> &nbsp;
-<a href="https://hstefanyo8.itch.io/nexus-city">SITE DO JOGO </a>
+<b>Android:</b>
 
+Faça o Download do JOGO.apk no seu celular.
+Execute o APK e siga as instruções de seu telefone.
+
+```sh
+Coloque código do prompt de comnando se for necessário
+```
+
+<b>Windows:</b>
+
+Não há instalação! Apenas executável!
+Encontre o JOGO.exe na pasta executáveis e execute-o como qualquer outro programa.
+
+```sh
+Coloque código do prompt de comnando se for necessário
+```
+
+<b>HTML:</b>
+
+Não há instalação!
+Encontre o index.html na pasta executáveis e execute-o como uma página WEB (através de algum browser).
+
+## 💻 Configuração para Desenvolvimento
+
+Descreva como instalar todas as dependências para desenvolvimento e como rodar um test-suite automatizado de algum tipo. Se necessário, faça isso para múltiplas plataformas.
+
+Para abrir este projeto você necessita das seguintes ferramentas:
+
+-<a href="https://godotengine.org/download">GODOT</a>
+
+```sh
+make install
+npm test
+Coloque código do prompt de comnando se for necessário
+```
 
 ## 📋 Licença/License
-
-<a href="https://github.com/2025-1-MCC1/Projeto8">Nexus City</a> © 2025 by <a href="https://github.com/2025-1-MCC1/Projeto8"> Pedro Vitor, Ricardo Oliveira, Stefany Oliveira, Lúcio Vecchio</a> is licensed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International</a>
-<br/><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" style="max-width: 1em;max-height:1em;margin-left: .2em;">
+Utilize o link <https://chooser-beta.creativecommons.org/> para fazer uma licença CC BY 4.0.
 
 ## 🎓 Referências
 
 Aqui estão as referências usadas no projeto.
 
-1. <a href="https://pt.wikipedia.org/wiki/Mega_Man_X7">MEGA Man x7</a>
-2. <a href="https://store.epicgames.com/pt-BR/p/cities-skylines">Cities Skylines</a>
-3. <a href="https://pt.wikipedia.org/wiki/Prince_of_Persia_(jogo_eletr%C3%B4nico_de_1989)">Prince of Persia (1989)</a>
-3. <a href="https://freesound.org/">Free sound</a>
-4. <a href="https://assetstore.unity.com/packages/3d/environments/urban/free-low-poly-simple-urban-city-3d-asset-pack-239474"> Asset City</a>
-5. <a href="https://creativecommons.org/share-your-work/">License</a>
+1. <https://github.com/iuricode/readme-template>
+2. <https://github.com/gabrieldejesus/readme-model>
+3. <https://chooser-beta.creativecommons.org/>
+4. <https://freesound.org/>
+5. <https://www.toptal.com/developers/gitignore>
+6. Músicas por: <a href="https://freesound.org/people/DaveJf/sounds/616544/"> DaveJf </a> e <a href="https://freesound.org/people/DRFX/sounds/338986/"> DRFX </a> ambas com Licença CC 0.
