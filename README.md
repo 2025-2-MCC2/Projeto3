@@ -10,7 +10,7 @@
 
 ## Integrantes: <a href="https://www.linkedin.com/in/gustavo-pires0/">Gustavo Felizardo Pires</a>, <a href="https://www.linkedin.com/in/victorbarq/">Pedro Vitor Carlos Brandão</a>, <a href="https://www.linkedin.com/in/lucio-vecchio/">Lúcio Vecchio Huminski de Carvalho</a>, <a href="https://www.linkedin.com/in/victorbarq/">Luiz Miguel de Toledo</a>, <a href="https://www.linkedin.com/in/victorbarq/">Nathan Santos de Lima</a>
 
-## Professores Orientadores: <a href="linkedin.com/in/cristina-machado-corrêa-leite-630309160">Cristina Machado Corrêa Leite</a>, <a href="linkedin.com/in/dolemes">David de Oliveira Lemes</a>, <a href="linkedin.com/in/leonardo-fabris-lugoboni-a3369416">Leonardo Fabris Lugoboni</a>, <a href="https://www.linkedin.com/in/victorbarq/">Me. Yoda</a>, <a href="https://www.linkedin.com/in/victorbarq/">Dr. Gero</a>
+## Professores Orientadores: <a href="linkedin.com/in/cristina-machado-corrêa-leite-630309160">Cristina Machado Corrêa Leite</a>, <a href="linkedin.com/in/dolemes">David de Oliveira Lemes</a>, <a href="linkedin.com/in/leonardo-fabris-lugoboni-a3369416">Leonardo Fabris Lugoboni</a>, <a href="https://www.linkedin.com/in/victorbarq/">Katia Milani Lara Bossi</a>, <a href="https://www.linkedin.com/in/victorbarq/">Francisco de Souza Escobar</a>
 
 ## Descrição
 
