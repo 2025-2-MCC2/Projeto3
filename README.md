@@ -1,7 +1,7 @@
 # FECAP - Fundação de Comércio Álvares Penteado
 
 <p align="center">
-<a href= "https://www.fecap.br/"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhZPrRa89Kma0ZZogxm0pi-tCn_TLKeHGVxywp-LXAFGR3B1DPouAJYHgKZGV0XTEf4AE&usqp=CAU" alt="FECAP - Fundação de Comércio Álvares Penteado" border="0" width="400" height="400"></a>
+<a href= "https://www.fecap.br/"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhZPrRa89Kma0ZZogxm0pi-tCn_TLKeHGVxywp-LXAFGR3B1DPouAJYHgKZGV0XTEf4AE&usqp=CAU" alt="FECAP - Fundação de Comércio Álvares Penteado" border="0" width="350" height="350"></a>
 </p>
 
 # PROJETO LIDERANÇAS EMPÁTICAS
@@ -15,7 +15,7 @@
 ## Descrição
 
 <p align="center">
-<img width="400" height="400" alt="logo dev leaders" src="https://github.com/user-attachments/assets/0565a7c5-2df8-4aa2-9f4c-e82369d371cf" />
+<img width="350" height="350" alt="logo dev leaders" src="https://github.com/user-attachments/assets/0565a7c5-2df8-4aa2-9f4c-e82369d371cf" />
 
   Game by <a href="http://www.nyphotographic.com/">Nick Youngson</a> <a rel="license" href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> <a href="http://pix4free.org/">Pix4free</a>
 </p>
