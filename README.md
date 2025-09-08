@@ -14,7 +14,7 @@
 
 ## Descrição
 
-><img width="1024" height="1024" alt="logo dev leaders" src="https://github.com/user-attachments/assets/0565a7c5-2df8-4aa2-9f4c-e82369d371cf" />
+><img width="500" height="500" alt="logo dev leaders" src="https://github.com/user-attachments/assets/0565a7c5-2df8-4aa2-9f4c-e82369d371cf" />
 
   Game by <a href="http://www.nyphotographic.com/">Nick Youngson</a> <a rel="license" href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> <a href="http://pix4free.org/">Pix4free</a>
 </p>
