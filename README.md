@@ -119,5 +119,5 @@ Descrição completa do projeto
 
 Modelagem banco de dados
 
- A modelagem completa do banco de dados está disponível neste arquivo: [BD/README.md](BD/README.md)
+ A modelagem completa do banco de dados está disponível neste arquivo: [Projeto BD](./src/entrega/BD/README.md)
 
