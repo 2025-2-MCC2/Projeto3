@@ -1,7 +1,7 @@
 # FECAP - Fundação de Comércio Álvares Penteado
 
 <p align="center">
-<a href= "https://www.fecap.br/"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhZPrRa89Kma0ZZogxm0pi-tCn_TLKeHGVxywp-LXAFGR3B1DPouAJYHgKZGV0XTEf4AE&usqp=CAU" alt="FECAP - Fundação de Comércio Álvares Penteado" border="0" width="350" height="350"></a>
+<a href= "https://www.fecap.br/"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhZPrRa89Kma0ZZogxm0pi-tCn_TLKeHGVxywp-LXAFGR3B1DPouAJYHgKZGV0XTEf4AE&usqp=CAU" alt="FECAP - Fundação de Comércio Álvares Penteado" border="0" width="450" height="450"></a>
 </p>
 
 # PROJETO LIDERANÇAS EMPÁTICAS
@@ -15,7 +15,7 @@
 ## Descrição
 
 <p align="center">
-<img width="350" height="350" alt="logo dev leaders" src="https://github.com/user-attachments/assets/0565a7c5-2df8-4aa2-9f4c-e82369d371cf" />
+<img width="450" height="450" alt="logo dev leaders" src="https://github.com/user-attachments/assets/0565a7c5-2df8-4aa2-9f4c-e82369d371cf" />
 
 
 ## 🛠 Estrutura de pastas
