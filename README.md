@@ -6,7 +6,7 @@
 
 # PROJETO LIDERANÇAS EMPÁTICAS
 
-## DevLeaders
+## Grupo: DevLeaders
 
 ## Integrantes: <a href="https://www.linkedin.com/in/gustavo-pires0/">Gustavo Felizardo Pires</a>, Pedro Vitor Carlos Brandão, <a href="https://www.linkedin.com/in/lucio-vecchio/">Lúcio Vecchio Huminski de Carvalho</a>, <a href="https://www.linkedin.com/in/luiz-miguel-de-toledo-b35701351/?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"> Luiz Miguel de Toledo, <a href="https://www.linkedin.com/in/nathan-santos-de-lima-aa5401355/"> Nathan Santos de Lima
 
