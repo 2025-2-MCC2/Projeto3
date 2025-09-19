@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="./public/logos/liderancas-empaticas.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestão de Lideranças</title>
+    <!-- React 18 UMD + Babel Standalone (dev) -->
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+    <!-- Runtime ENV (copie env.js.example para env.js e ajuste API_URL) -->
+    <script src="./env.js"></script>
+    <style>
+      :root { --green: #198754; --green-dark: #0f5132; }
+      body { margin: 0; background:#f8f9fa; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+      header { position: sticky; top: 0; z-index: 1000; background: linear-gradient(90deg, var(--green-dark), var(--green)); color: #fff; padding: 14px 24px; display:flex; justify-content: space-between; align-items:center; font-family: 'Montserrat', sans-serif; font-weight:700; }
+      .container { max-width: 1200px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+      .card { background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.06); padding:16px; }
+      .btn { background: var(--green); color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; }
+      .btn-danger { background:#dc3545; }
+      .input { padding:10px 12px; border:1px solid #ced4da; border-radius:8px; width:100%; }
+      table { width:100%; border-collapse: collapse; }
+      th, td { padding:8px; text-align:left; }
+      tbody tr { border-top: 1px solid #e9ecef; }
+      /* Animations */
+      @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes scaleIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+      .anim-fade { animation: fadeInUp .5s ease both; }
+      .anim-scale { animation: scaleIn .4s ease both; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+      const { useState, useEffect } = React;
+
+      function Header({ title, user, onLogout }) {
+        return (
+          <header>
+            <span>{title}</span>
+            <div style={{display:'flex', gap:16, alignItems:'center'}}>
+              {user && <span style={{opacity:.95}}>{(user.role || 'USUÁRIO').toUpperCase()} - {user.name || 'Sessão'}</span>}
+              {user && <button className="btn" onClick={onLogout}>Sair</button>}
+            </div>
+          </header>
+        );
+      }
+
+      // === Storage simples para doações (simula fluxo original) ===
+      const LS_KEYS = {
+        DONATIONS: 'gl_donations',
+        PENDING: 'gl_donations_pending',
+        RECENT: 'gl_donations_recent'
+      };
+      function lsGet(key, fallback=[]) { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; } }
+      function lsSet(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+
+      function createDonation({ description, amount, category, unit, team, user }) {
+        const all = lsGet(LS_KEYS.DONATIONS);
+        const id = (all.reduce((m, d)=>Math.max(m, d.id||0), 0) + 1) || 1;
+        const donation = { id, description, amount: parseFloat(amount||0), category, unit, team: team||'', user, status: 'Pendente', createdAt: new Date().toISOString() };
+        all.push(donation); lsSet(LS_KEYS.DONATIONS, all);
+        const pend = lsGet(LS_KEYS.PENDING); pend.push(donation); lsSet(LS_KEYS.PENDING, pend);
+        return donation;
+      }
+      function listPending() { return lsGet(LS_KEYS.PENDING); }
+      function listRecent() { return lsGet(LS_KEYS.RECENT); }
+      function listAllDonations() { return lsGet(LS_KEYS.DONATIONS); }
+      function listUserDonations(user) { const all = lsGet(LS_KEYS.DONATIONS); return all.filter(d => d.user?.name === user.name); }
+      function updateDonationStatus(id, status, motivo=null) {
+        const all = lsGet(LS_KEYS.DONATIONS); const idx = all.findIndex(d=>d.id===id);
+        if (idx>=0) {
+          all[idx].status = status; all[idx].motivo = motivo; all[idx].updatedAt = new Date().toISOString();
+          lsSet(LS_KEYS.DONATIONS, all);
+          const pend = lsGet(LS_KEYS.PENDING).filter(d=>d.id!==id); lsSet(LS_KEYS.PENDING, pend);
+          if (status === 'Aprovada') {
+            const rec = lsGet(LS_KEYS.RECENT); rec.unshift(all[idx]); if (rec.length>50) rec.splice(50); lsSet(LS_KEYS.RECENT, rec);
+          }
+          return all[idx];
+        }
+        return null;
+      }
+
+      // === Student: registro de doações ===
+      function StudentDonationsSection({ user }) {
+        const [form, setForm] = useState({ description:'', amount:'', category:'alimento', team:'' });
+        const [error, setError] = useState('');
+        const [success, setSuccess] = useState('');
+        const [mine, setMine] = useState([]);
+        const [teams, setTeams] = useState([]);
+
+        const unitFor = (cat) => (cat==='alimento' ? 'kg' : cat==='fundos' ? 'R$' : 'un');
+        const placeholderFor = (cat) => (cat==='alimento' ? 'Valor (kg)' : cat==='fundos' ? 'Valor (R$)' : 'Quantidade (un)');
+
+        const loadMine = () => setMine(listUserDonations(user));
+        useEffect(()=>{ loadMine(); }, [user?.name]);
+        // Carrega equipes existentes da API para ajudar o aluno a selecionar
+        useEffect(()=>{
+          const BASE_URL = (window.__ENV && window.__ENV.API_URL) || 'http://localhost:3001';
+          (async ()=>{
+            try {
+              const res = await fetch(`${BASE_URL}/api/leaders`);
+              const json = await res.json();
+              if (res.ok) {
+                const uniques = Array.from(new Set((json.data||[]).map(l=>l.team).filter(Boolean)));
+                setTeams(uniques);
+              }
+            } catch {}
+          })();
+        }, []);
+
+        const submit = (e) => {
+          e.preventDefault(); setError(''); setSuccess('');
+          if (!form.description || !form.amount || !form.team) { setError('Preencha todos os campos (inclua a Equipe)'); return; }
+          const amount = parseFloat(form.amount);
+          if (isNaN(amount) || amount<=0) { setError('Valor inválido'); return; }
+          const unit = unitFor(form.category);
+          createDonation({ description: form.description, amount, category: form.category, unit, team: form.team, user: { id: user.name, name: user.name, role: user.role } });
+          setForm({ description:'', amount:'', category: form.category, team: form.team });
+          setSuccess('Atividade registrada com sucesso!');
+          loadMine();
+        };
+
+        return (
+          <div className="container" style={{ paddingTop: 16 }}>
+            <div className="grid-2">
+              <Card title="Registrar Doação">
+                <form onSubmit={submit} style={{ display:'grid', gap:12 }} className="anim-fade">
+                  <input className="input" placeholder="Descrição" value={form.description} onChange={(e)=>setForm(f=>({...f, description:e.target.value}))} />
+                  <select className="input" value={form.category} onChange={(e)=>setForm(f=>({...f, category:e.target.value}))}>
+                    <option value="alimento">Doações de alimento (kg)</option>
+                    <option value="fundos">Arrecadações de fundos (R$)</option>
+                    <option value="brinquedos">Brinquedos (un)</option>
+                  </select>
+                  <div style={{ display:'grid', gap:8 }}>
+                    <select className="input" value={form.team} onChange={(e)=>setForm(f=>({...f, team:e.target.value}))}>
+                      <option value="">Selecione a Equipe</option>
+                      {teams.map(t=> <option key={t} value={t}>{t}</option>)}
+                      <option value="__other">Outra (digitar abaixo)</option>
+                    </select>
+                    {form.team==='__other' && (
+                      <input className="input" placeholder="Nome da Equipe" value={form.__teamText||''} onChange={(e)=>setForm(f=>({ ...f, __teamText: e.target.value, team: '__other' }))} onBlur={()=>{ if(form.__teamText){ setForm(f=>({ ...f, team: f.__teamText })); } }} />
+                    )}
+                  </div>
+                  <input className="input" placeholder={placeholderFor(form.category)} value={form.amount} onChange={(e)=>setForm(f=>({...f, amount:e.target.value}))} />
+                  <div style={{ display:'flex', gap:12, alignItems:'center' }}>
+                    <button className="btn" type="submit">Cadastrar</button>
+                    {error && <span style={{ color:'#dc3545' }}>{error}</span>}
+                    {success && <span style={{ color:'#198754' }}>{success}</span>}
+                  </div>
+                </form>
+              </Card>
+              <Card title="Minhas Doações">
+                <div style={{ overflowX:'auto' }}>
+                  <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                    <thead>
+                      <tr style={{ textAlign:'left', color:'#495057' }}>
+                        <th style={{ padding:8 }}>#</th>
+                        <th style={{ padding:8 }}>Descrição</th>
+                        <th style={{ padding:8 }}>Equipe</th>
+                        <th style={{ padding:8 }}>Categoria</th>
+                        <th style={{ padding:8 }}>Valor</th>
+                        <th style={{ padding:8 }}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {mine.length===0 && <tr><td colSpan="5" style={{ padding:8, color:'#6c757d' }}>Nenhum registro encontrado</td></tr>}
+                      {mine.map((d,i)=> (
+                        <tr key={d.id} style={{ borderTop:'1px solid #e9ecef' }}>
+                          <td style={{ padding:8 }}>{i+1}</td>
+                          <td style={{ padding:8 }}>{d.description}</td>
+                          <td style={{ padding:8 }}>{d.team || '-'}</td>
+                          <td style={{ padding:8 }}>{d.category}</td>
+                          <td style={{ padding:8 }}>{d.category==='fundos' ? `R$ ${d.amount.toFixed(2)}` : `${d.amount} ${d.unit||''}`}</td>
+                          <td style={{ padding:8 }}>{d.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            </div>
+            {/* Resumo: subtotais por status e totais aprovados por categoria */}
+            <div className="card" style={{ marginTop:16 }}>
+              {(() => {
+                const pend = mine.filter(d=>d.status==='Pendente').length;
+                const apro = mine.filter(d=>d.status==='Aprovada').length;
+                const rej = mine.filter(d=>d.status==='Rejeitada').length;
+                const approved = mine.filter(d=>d.status==='Aprovada');
+                const food = approved.filter(d=>d.category==='alimento').reduce((s,d)=>s+(d.amount||0),0);
+                const funds = approved.filter(d=>d.category==='fundos').reduce((s,d)=>s+(d.amount||0),0);
+                const toys = approved.filter(d=>d.category==='brinquedos').reduce((s,d)=>s+(d.amount||0),0);
+                return (
+                  <div className="anim-fade">
+                    <div style={{ fontWeight:700, marginBottom:8, color:'#0f5132' }}>Resumo</div>
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:12 }}>
+                      <div className="card" style={{ padding:12 }}><div style={{ color:'#0f5132', fontWeight:700 }}>Pendentes</div><div style={{ fontSize:22, fontWeight:800 }}>{pend}</div></div>
+                      <div className="card" style={{ padding:12 }}><div style={{ color:'#0f5132', fontWeight:700 }}>Aprovadas</div><div style={{ fontSize:22, fontWeight:800 }}>{apro}</div></div>
+                      <div className="card" style={{ padding:12 }}><div style={{ color:'#0f5132', fontWeight:700 }}>Rejeitadas</div><div style={{ fontSize:22, fontWeight:800 }}>{rej}</div></div>
+                    </div>
+                    <div style={{ marginTop:12, display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:12 }}>
+                      <div className="card" style={{ padding:12 }}><div style={{ color:'#0f5132', fontWeight:700 }}>Alimentos (kg) aprovados</div><div style={{ fontSize:22, fontWeight:800 }}>{food.toFixed(2)}</div></div>
+                      <div className="card" style={{ padding:12 }}><div style={{ color:'#0f5132', fontWeight:700 }}>Fundos (R$) aprovados</div><div style={{ fontSize:22, fontWeight:800 }}>{funds.toFixed(2)}</div></div>
+                      <div className="card" style={{ padding:12 }}><div style={{ color:'#0f5132', fontWeight:700 }}>Brinquedos (un) aprovados</div><div style={{ fontSize:22, fontWeight:800 }}>{toys}</div></div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        );
+      }
+
+      // === Mentor: aprovação de doações pendentes ===
+      function MentorApprovalSection() {
+        const [pending, setPending] = useState([]);
+        const [loading, setLoading] = useState(false);
+        const [error, setError] = useState('');
+
+        const load = () => {
+          setLoading(true); setError('');
+          try { setPending(listPending()); } catch (e) { setError('Erro ao carregar'); }
+          finally { setLoading(false); }
+        };
+        useEffect(()=>{ load(); }, []);
+
+        const doApprove = (id) => { updateDonationStatus(id, 'Aprovada'); load(); };
+        const doReject = (id) => {
+          const motivo = prompt('Motivo da rejeição (opcional):') || null;
+          updateDonationStatus(id, 'Rejeitada', motivo); load();
+        };
+
+        return (
+          <div className="container" style={{ paddingTop: 16 }}>
+            <Card title="Aprovação de Doações" right={<button className="btn" onClick={load}>Atualizar</button>}>
+              {loading && <span>Carregando…</span>}
+              {error && <div style={{ color:'#dc3545' }}>{error}</div>}
+              <div style={{ overflowX:'auto', marginTop:8 }}>
+                <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                  <thead>
+                    <tr style={{ textAlign:'left', color:'#495057' }}>
+                      <th style={{ padding:8 }}>#</th>
+                      <th style={{ padding:8 }}>Descrição</th>
+                      <th style={{ padding:8 }}>Equipe</th>
+                      <th style={{ padding:8 }}>Categoria</th>
+                      <th style={{ padding:8 }}>Valor</th>
+                      <th style={{ padding:8 }}>Aluno</th>
+                      <th style={{ padding:8 }}>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {!loading && pending.length===0 && (
+                      <tr><td colSpan="5" style={{ padding:8, color:'#6c757d' }}>Nenhum registro encontrado</td></tr>
+                    )}
+                    {pending.map((p, i) => (
+                      <tr key={p.id} style={{ borderTop:'1px solid #e9ecef' }}>
+                        <td style={{ padding:8 }}>{i+1}</td>
+                        <td style={{ padding:8 }}>{p.description}</td>
+                        <td style={{ padding:8 }}>{p.team || '-'}</td>
+                        <td style={{ padding:8 }}>{p.category}</td>
+                        <td style={{ padding:8 }}>{p.category==='fundos' ? `R$ ${p.amount.toFixed(2)}` : `${p.amount} ${p.unit||''}`}</td>
+                        <td style={{ padding:8 }}>{p.user?.name || '-'}</td>
+                        <td style={{ padding:8, display:'flex', gap:8 }}>
+                          <button className="btn" onClick={()=>doApprove(p.id)}>Aprovar</button>
+                          <button className="btn btn-danger" onClick={()=>doReject(p.id)}>Rejeitar</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </div>
+        );
+      }
+
+      // === Admin Dashboard (KPIs + Charts + Ranking) ===
+      function AdminDashboard() {
+        const [leaders, setLeaders] = useState([]);
+        const [donations, setDonations] = useState([]);
+        const [loading, setLoading] = useState(false);
+        const [error, setError] = useState("");
+        const BASE_URL = (window.__ENV && window.__ENV.API_URL) || 'http://localhost:3001';
+
+        useEffect(() => {
+          const reload = async () => {
+            setLoading(true); setError("");
+            try {
+              const res = await fetch(`${BASE_URL}/api/leaders`);
+              const json = await res.json();
+              if (!res.ok) throw new Error(json?.message || `Erro HTTP ${res.status}`);
+              setLeaders(json.data || []);
+              setDonations(listAllDonations());
+            } catch (e) { setError(e.message || 'Erro ao carregar'); }
+            finally { setLoading(false); }
+          };
+
+          reload();
+
+          const onStorage = (e) => {
+            if (e.key === 'gl_donations' || e.key === 'gl_donations_pending' || e.key === 'gl_donations_recent') {
+              setDonations(listAllDonations());
+            }
+          };
+          const onFocus = () => { reload(); };
+          window.addEventListener('storage', onStorage);
+          window.addEventListener('focus', onFocus);
+          return () => {
+            window.removeEventListener('storage', onStorage);
+            window.removeEventListener('focus', onFocus);
+          };
+        }, []);
+
+        // Agrupamentos por equipe e por role
+        // Ranking: baseado em doações APROVADAS por equipe (valores por categoria)
+        const approved = donations.filter(d => d.status === 'Aprovada');
+        const donationsByTeam = approved.reduce((acc, d) => {
+          const team = d.team || '—';
+          acc[team] = acc[team] || { food:0, funds:0, toys:0 };
+          if (d.category==='alimento') acc[team].food += (d.amount||0);
+          else if (d.category==='fundos') acc[team].funds += (d.amount||0);
+          else if (d.category==='brinquedos') acc[team].toys += (d.amount||0);
+          return acc;
+        }, {});
+        // ainda computamos byRole para KPIs de leaders
+        const byTeam = Object.fromEntries(Object.entries(donationsByTeam).map(([team, v]) => [team, (v.food||0)+(v.funds||0)+(v.toys||0)]));
+        const byRole = leaders.reduce((acc, l) => { const k = l.role || '—'; acc[k] = (acc[k] || 0) + 1; return acc; }, {});
+        const teamsData = Object.entries(byTeam).map(([name, total]) => ({ name, total }));
+
+        // KPIs
+        const totalLeaders = leaders.length;
+        const totalAlunos = byRole['aluno'] || byRole['Aluno'] || 0;
+        const totalMentores = byRole['mentor'] || byRole['Mentor'] || 0;
+
+        // KPIs de Doações por categoria (apenas Aprovadas)
+        const dFood = approved.filter(d=>d.category==='alimento').reduce((s,d)=>s+(d.amount||0),0);
+        const dFunds = approved.filter(d=>d.category==='fundos').reduce((s,d)=>s+(d.amount||0),0);
+        const dToys = approved.filter(d=>d.category==='brinquedos').reduce((s,d)=>s+(d.amount||0),0);
+        const byCategory = [
+          { name: 'Alimentos (kg)', total: dFood },
+          { name: 'Fundos (R$)', total: dFunds },
+          { name: 'Brinquedos (un)', total: dToys }
+        ];
+        // Resumo por status
+        const cPending = donations.filter(d=>d.status==='Pendente').length;
+        const cApproved = approved.length;
+        const cRejected = donations.filter(d=>d.status==='Rejeitada').length;
+
+        // Cores para gráficos
+        const COLORS = ['#006400', '#0E7A0D', '#1E9E1B', '#2ECF25', '#65DB6B', '#A0E7A5'];
+
+        // Pie chart: calcula arcos
+        function PieChartSVG({ data, size=260, inner=0 }) {
+          const radius = size/2; const cx = radius; const cy = radius; const total = data.reduce((s, d)=>s+d.total,0) || 1;
+          let angleStart = -Math.PI/2; // começa no topo
+          const paths = [];
+          data.forEach((d, i) => {
+            const angle = (d.total/total) * Math.PI * 2;
+            const angleEnd = angleStart + angle;
+            const x1 = cx + radius * Math.cos(angleStart);
+            const y1 = cy + radius * Math.sin(angleStart);
+            const x2 = cx + radius * Math.cos(angleEnd);
+            const y2 = cy + radius * Math.sin(angleEnd);
+            const large = angle > Math.PI ? 1 : 0;
+            const dPath = `M ${cx} ${cy} L ${x1} ${y1} A ${radius} ${radius} 0 ${large} 1 ${x2} ${y2} Z`;
+            paths.push(<path key={i} d={dPath} fill={COLORS[i % COLORS.length]} opacity="0.95"></path>);
+            angleStart = angleEnd;
+          });
+          return (
+            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>{paths}</svg>
+          );
+        }
+
+        // Bar chart simples
+        function BarChart({ data, height=260 }) {
+          const max = Math.max(...data.map(d=>d.total), 1);
+          return (
+            <div style={{ display:'grid', gridTemplateRows: `${height}px auto`, gap:8 }}>
+              <div style={{ display:'grid', gridAutoFlow:'column', alignItems:'end', gap:12, height }}>
+                {data.map((d, i) => (
+                  <div key={d.name} className="anim-fade" style={{ background:'#198754', width:24, height: Math.max(6, (d.total/max)*height), borderRadius:6 }} title={`${d.name}: ${d.total}`} />
+                ))}
+              </div>
+              <div style={{ display:'grid', gridAutoFlow:'column', gap:12, fontSize:12, color:'#495057' }}>
+                {data.map(d => <div key={d.name} style={{ writingMode:'vertical-rl', transform:'rotate(180deg)', textAlign:'center' }}>{d.name}</div>)}
+              </div>
+            </div>
+          );
+        }
+
+        // Ranking controls: estado no componente
+        const [rankBy, setRankBy] = useState('alimento'); // 'alimento' | 'fundos' | 'brinquedos'
+        function RankingControls(){
+          return (
+            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+              <span style={{ color:'#495057', fontSize:14 }}>Ordenar por</span>
+              <select className="input" style={{ padding:'6px 10px', width:160 }} value={rankBy} onChange={(e)=>setRankBy(e.target.value)}>
+                <option value="alimento">Alimentos (kg)</option>
+                <option value="fundos">Fundos (R$)</option>
+                <option value="brinquedos">Brinquedos (un)</option>
+              </select>
+            </div>
+          );
+        }
+        function getRankingRows(){
+          const rows = Object.entries(donationsByTeam).map(([team, v]) => ({ team, food: v.food||0, funds: v.funds||0, toys: v.toys||0 }));
+          const key = rankBy==='alimento' ? 'food' : rankBy==='fundos' ? 'funds' : 'toys';
+          return rows.sort((a,b)=> (b[key] - a[key]));
+        }
+
+        return (
+          <div className="container" style={{ paddingTop: 0 }}>
+            {/* Header + Atualizar */}
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+              <div style={{ fontWeight:800, color:'#0f5132' }}>Painel do Administrador</div>
+              <button className="btn" onClick={()=>{
+                // Recarrega leaders e donations
+                (async () => {
+                  try {
+                    const res = await fetch(`${BASE_URL}/api/leaders`);
+                    const json = await res.json();
+                    if (res.ok) setLeaders(json.data || []);
+                  } catch {}
+                  setDonations(listAllDonations());
+                })();
+              }}>Atualizar</button>
+            </div>
+
+            {/* KPIs de Leaders */}
+            <div className="grid-2 anim-fade" style={{ gridTemplateColumns:'repeat(3, 1fr)' }}>
+              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Total de Leaders</div><div style={{ fontSize:28, fontWeight:800 }}>{totalLeaders}</div></div>
+              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Alunos</div><div style={{ fontSize:28, fontWeight:800 }}>{totalAlunos}</div></div>
+              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Mentores</div><div style={{ fontSize:28, fontWeight:800 }}>{totalMentores}</div></div>
+            </div>
+
+            {/* KPIs de Doações */}
+            <div className="grid-2 anim-fade" style={{ gridTemplateColumns:'repeat(3, 1fr)', marginTop:16 }}>
+              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Alimentos (kg)</div><div style={{ fontSize:28, fontWeight:800 }}>{dFood.toFixed(2)}</div></div>
+              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Fundos (R$)</div><div style={{ fontSize:28, fontWeight:800 }}>{dFunds.toFixed(2)}</div></div>
+              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Brinquedos (un)</div><div style={{ fontSize:28, fontWeight:800 }}>{dToys}</div></div>
+            </div>
+
+            {/* Resumo de Status */}
+            <div className="grid-2 anim-fade" style={{ gridTemplateColumns:'repeat(3, 1fr)', marginTop:16 }}>
+              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Pendentes</div><div style={{ fontSize:28, fontWeight:800 }}>{cPending}</div></div>
+              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Aprovadas</div><div style={{ fontSize:28, fontWeight:800 }}>{cApproved}</div></div>
+              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Rejeitadas</div><div style={{ fontSize:28, fontWeight:800 }}>{cRejected}</div></div>
+            </div>
+
+            {/* Charts */}
+            <div className="grid-2" style={{ marginTop:16 }}>
+              <div className="card anim-scale">
+                <div style={{ fontWeight:700, marginBottom:8, color:'#0f5132' }}>Doações por Categoria</div>
+                {byCategory.some(c=>c.total>0) ? <PieChartSVG data={byCategory} /> : <span style={{ color:'#6c757d' }}>Nenhum dado (apenas aprovadas)</span>}
+              </div>
+              <div className="card anim-scale">
+                <div style={{ fontWeight:700, marginBottom:8, color:'#0f5132' }}>Totais por Categoria</div>
+                {byCategory.some(c=>c.total>0) ? <BarChart data={byCategory} /> : <span style={{ color:'#6c757d' }}>Nenhum dado (apenas aprovadas)</span>}
+              </div>
+            </div>
+
+            {/* Ranking por Doações Aprovadas (ordenar por categoria) */}
+            <div className="card anim-fade" style={{ marginTop:16 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                <div style={{ fontWeight:700, color:'#0f5132' }}>Ranking de Equipes (Doações Aprovadas)</div>
+                <RankingControls />
+              </div>
+              <div style={{ overflowX:'auto' }}>
+                <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                  <thead>
+                    <tr style={{ textAlign:'left', color:'#495057' }}>
+                      <th style={{ padding:8 }}>#</th>
+                      <th style={{ padding:8 }}>Equipe</th>
+                      <th style={{ padding:8 }}>Alimentos (kg)</th>
+                      <th style={{ padding:8 }}>Fundos (R$)</th>
+                      <th style={{ padding:8 }}>Brinquedos (un)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {getRankingRows().map((row, i) => (
+                      <tr key={row.team} style={{ borderTop:'1px solid #e9ecef' }}>
+                        <td style={{ padding:8 }}>{i+1}</td>
+                        <td style={{ padding:8 }}>{row.team}</td>
+                        <td style={{ padding:8 }}>{row.food.toFixed(2)}</td>
+                        <td style={{ padding:8 }}>{row.funds.toFixed(2)}</td>
+                        <td style={{ padding:8 }}>{row.toys}</td>
+                      </tr>
+                    ))}
+                    {!teamsData.length && (
+                      <tr><td colSpan="5" style={{ padding:8, color:'#6c757d' }}>Nenhum registro encontrado</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {error && <div style={{ color:'#dc3545', marginTop:8 }}>{error}</div>}
+          </div>
+        );
+      }
+
+      function Card({ children, title, right }) {
+        return (
+          <div className="card">
+            {title && (
+              <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8, color:'#0f5132', fontWeight:700}}>
+                <div>{title}</div>
+                {right}
+              </div>
+            )}
+            {children}
+          </div>
+        );
+      }
+
+      function LeadersSection() {
+        const [leaders, setLeaders] = useState([]);
+        const [loading, setLoading] = useState(false);
+        const [error, setError] = useState('');
+        const [form, setForm] = useState({ name:'', role:'', email:'', team:'' });
+        const BASE_URL = (window.__ENV && window.__ENV.API_URL) || 'http://localhost:3001';
+
+        const load = async () => {
+          setLoading(true); setError('');
+          try {
+            const res = await fetch(`${BASE_URL}/api/leaders`);
+            const json = await res.json();
+            if (!res.ok) throw new Error(json?.message || `Erro HTTP ${res.status}`);
+            setLeaders(json.data || []);
+          } catch (e) { setError(e.message || 'Erro ao carregar'); }
+          finally { setLoading(false); }
+        };
+
+        useEffect(() => { load(); }, []);
+
+        const onChange = (e) => setForm(f => ({...f, [e.target.name]: e.target.value}));
+        const onSubmit = async (e) => {
+          e.preventDefault(); setError('');
+          if (!form.name || !form.role || !form.email) { setError('Preencha nome, cargo e email'); return; }
+          try {
+            const res = await fetch(`${BASE_URL}/api/leaders`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(form) });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json?.message || 'Erro ao cadastrar');
+            setForm({ name:'', role:'', email:'', team:'' });
+            await load();
+          } catch (e) { setError(e.message || 'Erro ao cadastrar'); }
+        };
+        const onDelete = async (id) => {
+          if (!confirm('Deseja remover este leader?')) return;
+          setError('');
+          try {
+            const res = await fetch(`${BASE_URL}/api/leaders/${id}`, { method:'DELETE' });
+            const json = await res.json().catch(()=>({}));
+            if (!res.ok) throw new Error(json?.message || 'Erro ao excluir');
+            await load();
+          } catch (e) { setError(e.message || 'Erro ao excluir'); }
+        };
+
+        return (
+          <Card title="Cadastro de Leaders" right={<button className="btn" onClick={load}>Atualizar</button>}>
+            <form onSubmit={onSubmit} style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:12 }}>
+              <input className="input" name="name" placeholder="Nome" value={form.name} onChange={onChange} />
+              <input className="input" name="role" placeholder="Cargo" value={form.role} onChange={onChange} />
+              <input className="input" name="email" placeholder="Email" value={form.email} onChange={onChange} />
+              <input className="input" name="team" placeholder="Equipe (opcional)" value={form.team} onChange={onChange} />
+              <div style={{ gridColumn:'1/-1', display:'flex', gap:12, alignItems:'center' }}>
+                <button className="btn" type="submit">Cadastrar</button>
+                {loading && <span>Carregando…</span>}
+                {error && <span style={{ color:'#dc3545' }}>{error}</span>}
+              </div>
+            </form>
+
+            <div style={{ overflowX:'auto', marginTop:8 }}>
+              <table>
+                <thead>
+                  <tr><th>#</th><th>Nome</th><th>Cargo</th><th>Email</th><th>Equipe</th><th></th></tr>
+                </thead>
+                <tbody>
+                  {!loading && leaders.length === 0 && (
+                    <tr><td colSpan="6" style={{ color:'#6c757d' }}>Nenhum registro encontrado</td></tr>
+                  )}
+                  {leaders.map((l,i) => (
+                    <tr key={l.id}>
+                      <td>{i+1}</td>
+                      <td>{l.name}</td>
+                      <td>{l.role}</td>
+                      <td>{l.email}</td>
+                      <td>{l.team || '-'}</td>
+                      <td><button className="btn btn-danger" onClick={()=>onDelete(l.id)}>Excluir</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        );
+      }
+
+      function LoginForm({ onLogin }) {
+        const [mode, setMode] = React.useState('login'); // 'login' | 'register'
+        const [name, setName] = React.useState("");
+        const [email, setEmail] = React.useState("");
+        const [password, setPassword] = React.useState("");
+        const [confirm, setConfirm] = React.useState("");
+        const [role, setRole] = React.useState("aluno");
+        const [error, setError] = React.useState("");
+
+        const submit = (e) => {
+          e.preventDefault();
+          setError("");
+          if (mode === 'login') {
+            if (!email || !password) { setError('Informe email e senha'); return; }
+            const finalName = email?.split('@')[0] || 'Usuário';
+            onLogin({ name: finalName, role });
+          } else {
+            if (!name || !email || !password || !confirm) { setError('Preencha todos os campos'); return; }
+            if (password !== confirm) { setError('As senhas não conferem'); return; }
+            onLogin({ name, role });
+          }
+        };
+
+        const Title = () => (
+          <div style={{ textAlign:'center', marginBottom:24 }} className="anim-fade">
+            <div style={{ fontSize:28, fontWeight:800, color:'#0f5132' }}>{mode === 'login' ? 'Entrar' : 'Criar Conta'}</div>
+            <div style={{ color:'#6c757d' }}>{mode === 'login' ? 'Acesse a plataforma' : 'Cadastre-se na plataforma'}</div>
+          </div>
+        );
+
+        return (
+          <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f8f9fa', padding:20 }}>
+            <div className="card anim-scale" style={{ width: '100%', maxWidth: 560, padding:'40px 36px' }}>
+              {/* Logos */}
+              <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:40, marginBottom:24 }} className="anim-fade">
+                <img src="./public/logos/liderancas-empaticas.png" alt="Lideranças Empáticas" style={{ height:64 }} />
+                <img src="./public/logos/logo fecap.webp" alt="FECAP" style={{ height:48 }} />
+              </div>
+              <Title />
+              {/* Form */}
+              <form onSubmit={submit} style={{ display:'grid', gap:12 }} className="anim-fade">
+                {mode === 'register' && (
+                  <>
+                    <input className="input" placeholder="Nome completo" value={name} onChange={(e)=>setName(e.target.value)} />
+                    <input className="input" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
+                    <select className="input" value={role} onChange={(e)=>setRole(e.target.value)}>
+                      <option value="aluno">Aluno</option>
+                      <option value="mentor">Mentor</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                    <input className="input" type="password" placeholder="Senha" value={password} onChange={(e)=>setPassword(e.target.value)} />
+                    <input className="input" type="password" placeholder="Confirmar senha" value={confirm} onChange={(e)=>setConfirm(e.target.value)} />
+                  </>
+                )}
+                {mode === 'login' && (
+                  <>
+                    <input className="input" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
+                    <select className="input" value={role} onChange={(e)=>setRole(e.target.value)}>
+                      <option value="aluno">Aluno</option>
+                      <option value="mentor">Mentor</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                    <input className="input" type="password" placeholder="Senha" value={password} onChange={(e)=>setPassword(e.target.value)} />
+                  </>
+                )}
+                {error && <span style={{ color:'#dc3545' }}>{error}</span>}
+                <button className="btn" type="submit" style={{ width:'100%', padding:'12px 16px', borderRadius:10 }}>
+                  {mode === 'login' ? 'Entrar' : 'Criar Conta'}
+                </button>
+              </form>
+              <div style={{ textAlign:'center', marginTop:12 }} className="anim-fade">
+                {mode === 'login' ? (
+                  <button className="btn" style={{ background:'transparent', color:'#198754' }} onClick={()=>{ setError(''); setMode('register'); }}>Criar Conta</button>
+                ) : (
+                  <button className="btn" style={{ background:'transparent', color:'#198754' }} onClick={()=>{ setError(''); setMode('login'); }}>Já tenho conta</button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function App() {
+        const [user, setUser] = useState(() => {
+          try { return JSON.parse(localStorage.getItem('gl_user') || 'null'); } catch { return null; }
+        });
+
+        const handleLogin = (u) => {
+          setUser(u);
+          localStorage.setItem('gl_user', JSON.stringify(u));
+        };
+        const handleLogout = () => {
+          setUser(null);
+          localStorage.removeItem('gl_user');
+        };
+
+        if (!user) return <LoginForm onLogin={handleLogin} />;
+
+        return (
+          <>
+            <Header title="Gestão de Lideranças" user={user} onLogout={handleLogout} />
+            {user.role === 'admin' ? (
+              <>
+                <AdminDashboard />
+                <div className="container" style={{ paddingTop: 0 }}>
+                  <div className="grid-2" style={{ marginTop: 16 }}>
+                    <Card title="Cadastro e Lista">
+                      <div style={{ color:'#6c757d', marginBottom:8 }}>Gerencie os leaders pelo formulário e tabela.</div>
+                      <LeadersSection />
+                    </Card>
+                  </div>
+                </div>
+              </>
+            ) : user.role === 'mentor' ? (
+              <MentorApprovalSection />
+            ) : (
+              <StudentDonationsSection user={user} />
+            )}
+          </>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,137 @@
+{
+  "info": {
+    "name": "PI1 - Gestão de Lideranças",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Coleção para testar o CRUD da entidade leaders no backend Express + MySQL"
+  },
+  "item": [
+    {
+      "name": "Healthcheck",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Leaders - Listar",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/leaders",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "leaders"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Leaders - Criar",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Alice Teste\",\n  \"role\": \"Coordenadora\",\n  \"email\": \"alice.teste@example.com\",\n  \"team\": \"Equipe Delta\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/leaders",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "leaders"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Leaders - Buscar por ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/leaders/:id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "leaders",
+            ":id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Leaders - Atualizar",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Alice Atualizada\",\n  \"role\": \"Gerente\",\n  \"email\": \"alice.teste@example.com\",\n  \"team\": \"Equipe Epsilon\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/leaders/:id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "leaders",
+            ":id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Leaders - Deletar",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/leaders/:id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "leaders",
+            ":id"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001"
+    }
+  ]
+}
