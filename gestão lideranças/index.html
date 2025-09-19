@@ -26,6 +26,8 @@
       table { width:100%; border-collapse: collapse; }
       th, td { padding:8px; text-align:left; }
       tbody tr { border-top: 1px solid #e9ecef; }
+      .linha-selecionada { background-color: #d1ecf1; font-weight: bold; }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
       /* Animations */
       @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
       @keyframes scaleIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
@@ -59,10 +61,10 @@
       function lsGet(key, fallback=[]) { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; } }
       function lsSet(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
 
-      function createDonation({ description, amount, category, unit, team, user }) {
+      function createDonation({ description, amount, category, unit, team, user, photos=[] }) {
         const all = lsGet(LS_KEYS.DONATIONS);
         const id = (all.reduce((m, d)=>Math.max(m, d.id||0), 0) + 1) || 1;
-        const donation = { id, description, amount: parseFloat(amount||0), category, unit, team: team||'', user, status: 'Pendente', createdAt: new Date().toISOString() };
+        const donation = { id, description, amount: parseFloat(amount||0), category, unit, team: team||'', user, photos, status: 'Pendente', createdAt: new Date().toISOString() };
         all.push(donation); lsSet(LS_KEYS.DONATIONS, all);
         const pend = lsGet(LS_KEYS.PENDING); pend.push(donation); lsSet(LS_KEYS.PENDING, pend);
         return donation;
@@ -87,7 +89,7 @@
 
       // === Student: registro de doações ===
       function StudentDonationsSection({ user }) {
-        const [form, setForm] = useState({ description:'', amount:'', category:'alimento', team:'' });
+        const [form, setForm] = useState({ description:'', amount:'', category:'alimento', team:'', photos:[], previews:[] });
         const [error, setError] = useState('');
         const [success, setSuccess] = useState('');
         const [mine, setMine] = useState([]);
@@ -95,6 +97,22 @@
 
         const unitFor = (cat) => (cat==='alimento' ? 'kg' : cat==='fundos' ? 'R$' : 'un');
         const placeholderFor = (cat) => (cat==='alimento' ? 'Valor (kg)' : cat==='fundos' ? 'Valor (R$)' : 'Quantidade (un)');
+
+        const readFilesAsDataUrls = async (fileList) => {
+          const files = Array.from(fileList || []).slice(0, 6);
+          const readers = files.map(f => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(f);
+          }));
+          return Promise.all(readers);
+        };
+
+        const onPhotosChange = async (e) => {
+          const dataUrls = await readFilesAsDataUrls(e.target.files);
+          setForm(f => ({ ...f, photos: dataUrls, previews: dataUrls }));
+        };
 
         const loadMine = () => setMine(listUserDonations(user));
         useEffect(()=>{ loadMine(); }, [user?.name]);
@@ -116,11 +134,12 @@
         const submit = (e) => {
           e.preventDefault(); setError(''); setSuccess('');
           if (!form.description || !form.amount || !form.team) { setError('Preencha todos os campos (inclua a Equipe)'); return; }
+          if (!form.photos || form.photos.length === 0) { setError('Envie pelo menos uma foto do item'); return; }
           const amount = parseFloat(form.amount);
           if (isNaN(amount) || amount<=0) { setError('Valor inválido'); return; }
           const unit = unitFor(form.category);
-          createDonation({ description: form.description, amount, category: form.category, unit, team: form.team, user: { id: user.name, name: user.name, role: user.role } });
-          setForm({ description:'', amount:'', category: form.category, team: form.team });
+          createDonation({ description: form.description, amount, category: form.category, unit, team: form.team, user: { id: user.name, name: user.name, role: user.role }, photos: form.photos });
+          setForm({ description:'', amount:'', category: form.category, team: form.team, photos:[], previews:[] });
           setSuccess('Atividade registrada com sucesso!');
           loadMine();
         };
@@ -147,6 +166,17 @@
                     )}
                   </div>
                   <input className="input" placeholder={placeholderFor(form.category)} value={form.amount} onChange={(e)=>setForm(f=>({...f, amount:e.target.value}))} />
+                  <div style={{ display:'grid', gap:8 }}>
+                    <input className="input" type="file" accept="image/*" multiple onChange={onPhotosChange} />
+                    <div style={{ color:'#6c757d', fontSize:12 }}>Envie ao menos 1 foto do item (máx. 6)</div>
+                    {form.previews && form.previews.length > 0 && (
+                      <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                        {form.previews.map((src, idx) => (
+                          <img key={idx} src={src} alt={`Foto ${idx+1}`} style={{ width:72, height:72, objectFit:'cover', borderRadius:8, border:'1px solid #e9ecef' }} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <div style={{ display:'flex', gap:12, alignItems:'center' }}>
                     <button className="btn" type="submit">Cadastrar</button>
                     {error && <span style={{ color:'#dc3545' }}>{error}</span>}
@@ -220,6 +250,8 @@
         const [pending, setPending] = useState([]);
         const [loading, setLoading] = useState(false);
         const [error, setError] = useState('');
+        const [viewerPhotos, setViewerPhotos] = useState(null);
+        const tbodyRef = React.useRef(null);
 
         const load = () => {
           setLoading(true); setError('');
@@ -228,10 +260,33 @@
         };
         useEffect(()=>{ load(); }, []);
 
+        useEffect(()=>{
+          const tbody = tbodyRef.current;
+          if (!tbody) return;
+          const onClick = (e) => {
+            const tr = e.target.closest('tr[data-id]');
+            if (!tr) return;
+            const id = tr.getAttribute('data-id');
+            const isSelected = tr.classList.contains('linha-selecionada');
+            Array.from(tbody.querySelectorAll('tr[data-id]')).forEach(row => row.classList.remove('linha-selecionada'));
+            if (isSelected) {
+              tr.classList.remove('linha-selecionada');
+            } else {
+              tr.classList.add('linha-selecionada');
+            }
+          };
+          tbody.addEventListener('click', onClick);
+          return () => tbody.removeEventListener('click', onClick);
+        }, [tbodyRef]);
+
         const doApprove = (id) => { updateDonationStatus(id, 'Aprovada'); load(); };
         const doReject = (id) => {
           const motivo = prompt('Motivo da rejeição (opcional):') || null;
           updateDonationStatus(id, 'Rejeitada', motivo); load();
+        };
+        const openPhotos = (donation) => {
+          const photos = donation?.photos || [];
+          if (photos.length > 0) setViewerPhotos(photos);
         };
 
         return (
@@ -239,7 +294,7 @@
             <Card title="Aprovação de Doações" right={<button className="btn" onClick={load}>Atualizar</button>}>
               {loading && <span>Carregando…</span>}
               {error && <div style={{ color:'#dc3545' }}>{error}</div>}
-              <div style={{ overflowX:'auto', marginTop:8 }}>
+              <div style={{ overflowX:'auto', marginTop:0 }}>
                 <table style={{ width:'100%', borderCollapse:'collapse' }}>
                   <thead>
                     <tr style={{ textAlign:'left', color:'#495057' }}>
@@ -252,12 +307,12 @@
                       <th style={{ padding:8 }}>Ações</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody ref={tbodyRef}>
                     {!loading && pending.length===0 && (
                       <tr><td colSpan="5" style={{ padding:8, color:'#6c757d' }}>Nenhum registro encontrado</td></tr>
                     )}
                     {pending.map((p, i) => (
-                      <tr key={p.id} style={{ borderTop:'1px solid #e9ecef' }}>
+                      <tr key={p.id} data-id={p.id} style={{ borderTop:'1px solid #e9ecef' }}>
                         <td style={{ padding:8 }}>{i+1}</td>
                         <td style={{ padding:8 }}>{p.description}</td>
                         <td style={{ padding:8 }}>{p.team || '-'}</td>
@@ -274,6 +329,21 @@
                 </table>
               </div>
             </Card>
+            {viewerPhotos && (
+              <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:16, zIndex:2000 }} onClick={()=>setViewerPhotos(null)}>
+                <div className="card anim-scale" style={{ maxWidth:900, width:'100%', maxHeight:'90vh', overflow:'auto', padding:16 }} onClick={(e)=>e.stopPropagation()}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                    <div style={{ fontWeight:700, color:'#0f5132' }}>Fotos do Registro</div>
+                    <button className="btn" onClick={()=>setViewerPhotos(null)}>Fechar</button>
+                  </div>
+                  <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+                    {viewerPhotos.map((src, idx) => (
+                      <img key={idx} src={src} alt={`Foto ${idx+1}`} style={{ width:160, height:160, objectFit:'cover', borderRadius:10, border:'1px solid #e9ecef' }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         );
       }
