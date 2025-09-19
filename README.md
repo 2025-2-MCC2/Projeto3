@@ -1,122 +1,111 @@
-# FECAP - Fundação de Comércio Álvares Penteado
+# Gestão de Lideranças – PI1
 
-<p align="center">
-<a href= "https://www.fecap.br/"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhZPrRa89Kma0ZZogxm0pi-tCn_TLKeHGVxywp-LXAFGR3B1DPouAJYHgKZGV0XTEf4AE&usqp=CAU" alt="FECAP - Fundação de Comércio Álvares Penteado" border="0" width="350" height="350"></a>
-</p>
+Projeto Web Full Stack (Frontend React sem bundler via CDN + Backend Express + MySQL) com integração mínima e deploy.
 
-# PROJETO LIDERANÇAS EMPÁTICAS
+## Stack
+- Frontend: React 18 (UMD via CDN) + Babel Standalone (apenas dev, no navegador)
+- Backend: Node.js, Express, mysql2, CORS, dotenv
+- Banco: MySQL (tabela `leaders`)
 
-## DevLeaders
+## Estrutura de Pastas
+- `index.html` (Frontend React em CDN)
+- `env.js.example` (configuração de API em runtime)
+- `server/` (Backend Express)
+- `postman/` (Coleção Postman)
 
-## Integrantes: <a href="https://www.linkedin.com/in/gustavo-pires0/">Gustavo Felizardo Pires</a>, Pedro Vitor Carlos Brandão, <a href="https://www.linkedin.com/in/lucio-vecchio/">Lúcio Vecchio Huminski de Carvalho</a>, <a href="https://www.linkedin.com/in/luiz-miguel-de-toledo-b35701351/?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"> Luiz Miguel de Toledo, <a href="https://www.linkedin.com/in/nathan-santos-de-lima-aa5401355/"> Nathan Santos de Lima
+## Variáveis de Ambiente
 
-## Professores Orientadores: <a href="https://www.linkedin.com/in/cristina-machado-corr%C3%AAa-leite-630309160/">Cristina Machado Corrêa Leite</a>, <a href="https://www.linkedin.com/in/dolemes/">David de Oliveira Lemes</a>, <a href="https://www.linkedin.com/in/leonardo-fabris-lugoboni-a3369416/">Leonardo Fabris Lugoboni</a>, Katia Milani Lara Bossi, Francisco de Souza Escobar
-
-## Descrição
-
-<p align="center">
-<img width="350" height="350" alt="logo dev leaders" src="https://github.com/user-attachments/assets/0565a7c5-2df8-4aa2-9f4c-e82369d371cf" />
-
-  Game by <a href="http://www.nyphotographic.com/">Nick Youngson</a> <a rel="license" href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> <a href="http://pix4free.org/">Pix4free</a>
-</p>
-
-
-De um a dois parágrafos sobre o que é seu projeto e o que ele faz.
-<br><br>
-Meu projeto ajuda estudantes FECAP a configurarem seus githubs.
-<br><br>
-May the force be with you!
-<br><br>
-
-## 🛠 Estrutura de pastas
-
--Raiz<br>
-|<br>
-|-->documentos<br>
-  &emsp;|-->antigos<br>
-  &emsp;|Documentação.docx<br>
-|-->executáveis<br>
-  &emsp;|-->windows<br>
-  &emsp;|-->android<br>
-  &emsp;|-->HTML<br>
-|-->imagens<br>
-|-->src<br>
-  &emsp;|-->Backend<br>
-  &emsp;|-->Frontend<br>
-|readme.md<br>
-
-A pasta raiz contem dois arquivos que devem ser alterados:
-
-<b>README.MD</b>: Arquivo que serve como guia e explicação geral sobre seu projeto. O mesmo que você está lendo agora.
-
-Há também 4 pastas que seguem da seguinte forma:
-
-<b>documentos</b>: Toda a documentação estará nesta pasta.
-
-<b>executáveis</b>: Binários e executáveis do projeto devem estar nesta pasta.
-
-<b>imagens</b>: Imagens do sistema
-
-<b>src</b>: Pasta que contém o código fonte.
-
-## 🛠 Instalação
-
-<b>Android:</b>
-
-Faça o Download do JOGO.apk no seu celular.
-Execute o APK e siga as instruções de seu telefone.
-
-```sh
-Coloque código do prompt de comnando se for necessário
-````
-
-\<b\>Windows:\</b\>
-
-Não há instalação\! Apenas executável\!
-Encontre o JOGO.exe na pasta executáveis e execute-o como qualquer outro programa.
-
-```sh
-Coloque código do prompt de comnando se for necessário
+Frontend (runtime, arquivo JS):
+- Copie `./env.js.example` para `./env.js` e ajuste:
+```js
+window.__ENV = {
+  API_URL: "http://localhost:3001"
+}
 ```
 
-\<b\>HTML:\</b\>
-
-Não há instalação\!
-Encontre o index.html na pasta executáveis e execute-o como uma página WEB (através de algum browser).
-
-## 💻 Configuração para Desenvolvimento
-
-Descreva como instalar todas as dependências para desenvolvimento e como rodar um test-suite automatizado de algum tipo. Se necessário, faça isso para múltiplas plataformas.
-
-Para abrir este projeto você necessita das seguinte ferramentas:
-
-\-\<a href="https://godotengine.org/download"\>GODOT\</a\>
-
-```sh
-make install
-npm test
-Coloque código do prompt de comnando se for necessário
+Backend (`./server/.env` baseado em `./server/.env.example`):
+```
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=gestao_liderancas
+PORT=3001
+NODE_ENV=development
+ORIGIN=http://localhost
 ```
 
-## 📋 Licença/License
+## Como rodar localmente
+Pré-requisitos: MySQL 8+, Node 18+ (somente para o backend)
 
-Utilize o link [https://chooser-beta.creativecommons.org/](https://chooser-beta.creativecommons.org/) para fazer uma licença CC BY 4.0.
+1) Backend (Express + MySQL)
+- Instalar dependências
+```
+cd server
+npm install
+```
+- Criar base e tabela, com seed (opcional)
+```
+npm run init-db
+```
+- Rodar o servidor
+```
+npm run dev
+```
+A API estará em: `http://localhost:3001`
 
-## 🎓 Referências
+2) Frontend (CDN)
+- Copie `env.js.example` para `env.js` na raiz do projeto e ajuste `API_URL` se necessário
+- Abra o arquivo `index.html` no navegador (duplo clique) OU sirva estaticamente com qualquer servidor HTTP
+  - Ex.: via Python: `python -m http.server 5173` e acesse `http://localhost:5173`
 
-Aqui estão as referências usadas no projeto.
+## Rotas da API (leaders)
+Base URL: `{API_URL}/api/leaders`
 
-1.  [https://github.com/iuricode/readme-template](https://github.com/iuricode/readme-template)
-2.  [https://github.com/gabrieldejesus/readme-model](https://github.com/gabrieldejesus/readme-model)
-3.  [https://chooser-beta.creativecommons.org/](https://chooser-beta.creativecommons.org/)
-4.  [https://freesound.org/](https://freesound.org/)
-5.  [https://www.toptal.com/developers/gitignore](https://www.toptal.com/developers/gitignore)
-6.  Músicas por: \<a href="https://freesound.org/people/DaveJf/sounds/616544/"\> DaveJf \</a\> e \<a href="https://freesound.org/people/DRFX/sounds/338986/"\> DRFX \</a\> ambas com Licença CC 0.
+- GET `/` – Lista leaders
+  - Resposta 200: `{ success, data: Leader[] }`
+- GET `/:id` – Busca por id
+  - 200 quando existe; 404 quando não encontrado
+- POST `/` – Cria leader
+  - Body JSON: `{ name: string, role: string, email: string, team?: string }`
+  - Validação: `name`, `role`, `email` obrigatórios; `email` único
+  - 201 em sucesso; 409 se email já usado; 400 campos inválidos
+- PUT `/:id` – Atualiza leader
+  - Body JSON igual ao POST
+  - 200 em sucesso; 404 se não encontrado; 409 email em uso por outro
+- DELETE `/:id` – Remove leader
+  - 200 em sucesso; 404 se não encontrado
 
-Projeto lideranças empáticas/ Portal do Doador
+## Integração Frontend
+- O `index.html` monta um app React com componentes `Header`, `Card` e `LeadersSection`
+- `LeadersSection` faz `fetch` para `{API_URL}/api/leaders`, com estados de `Carregando…`, erro e vazio
+- Página inicial com formulário controlado funcional (Create)
 
-Descrição completa do projeto
+## Deploy
 
-Modelagem banco de dados
+### Frontend (Netlify ou Vercel – site estático)
+- Publicar a raiz do projeto contendo `index.html` e `env.js`
+- Não há build. Certifique-se de incluir `env.js` com `API_URL` apontando para o backend público
 
- A modelagem completa do banco de dados está disponível neste arquivo: [Projeto BD](./src/Entrega%201/BD/README.md)
+### Backend (Railway/Render)
+- Pasta de projeto: `server/`
+- Start script: `npm start`
+- Variáveis: `DB_*`, `PORT`, `ORIGIN=https://<seu-frontend-publico>`
+- Healthcheck: `/health`
+
+Após publicar, atualize abaixo:
+- Frontend (URL pública): ...
+- Backend (URL pública): ...
+
+## Postman
+- Coleção em `postman/PI.postman_collection.json` cobrindo CRUD leaders.
+
+## Vídeo Demonstrativo
+- Link: ...
+
+## Limitações/Próximos Passos (PI2)
+- Expandir domínio (auth real, times, atividades)
+- Estados globais e testes
+
+## Scripts úteis
+- Backend: `npm run init-db` (cria DB e seed), `npm run dev`, `npm start`

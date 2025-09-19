@@ -1,0 +1,13 @@
+{
+  "name": "gestao-liderancas",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Sistema de Gestão de Lideranças",
+  "scripts": {
+    "start": "cd server && npm start",
+    "dev": "cd server && npm run dev"
+  },
+  "keywords": ["gestao", "liderancas", "node", "express", "mysql"],
+  "author": "",
+  "license": "MIT"
+}
