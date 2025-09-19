@@ -51,9 +51,8 @@ Aqui estão as referências usadas no projeto.
 5.  [https://www.toptal.com/developers/gitignore](https://www.toptal.com/developers/gitignore)
 6.  Músicas por: \<a href="https://freesound.org/people/DaveJf/sounds/616544/"\> DaveJf \</a\> e \<a href="https://freesound.org/people/DRFX/sounds/338986/"\> DRFX \</a\> ambas com Licença CC 0.
 
-Projeto lideranças empáticas/ Portal do Doador
+Projeto Lideranças Empáticas/Portal do Doador
 
-Descrição completa do projeto
 
 Modelagem Banco de Dados
 
