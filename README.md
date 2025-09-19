@@ -8,7 +8,7 @@
 
 ## Grupo: DevLeaders
 
-## Integrantes: <a href="https://www.linkedin.com/in/gustavo-pires0/">Gustavo Felizardo Pires</a>, <a href="https://www.linkedin.com/in/pedro-vitor-carlos-brand%C3%A3o-149051349?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app">Pedro Vitor Carlos Brandão</>, <a href="https://www.linkedin.com/in/lucio-vecchio/">Lúcio Vecchio Huminski de Carvalho</a>, <a href="https://www.linkedin.com/in/luiz-miguel-de-toledo-b35701351/?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"> Luiz Miguel de Toledo, <a href="https://www.linkedin.com/in/nathan-santos-de-lima-aa5401355/"> Nathan Santos de Lima
+## Integrantes: <a href="https://www.linkedin.com/in/gustavo-pires0/">Gustavo Felizardo Pires</a>, <a href="https://www.linkedin.com/in/pedro-vitor-carlos-brand%C3%A3o-149051349?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app">Pedro Vitor Carlos Brandão, <a href="https://www.linkedin.com/in/lucio-vecchio/">Lúcio Vecchio Huminski de Carvalho</a>, <a href="https://www.linkedin.com/in/luiz-miguel-de-toledo-b35701351/?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"> Luiz Miguel de Toledo, <a href="https://www.linkedin.com/in/nathan-santos-de-lima-aa5401355/"> Nathan Santos de Lima
 
 ## Professores Orientadores: <a href="https://www.linkedin.com/in/cristina-machado-corr%C3%AAa-leite-630309160/">Cristina Machado Corrêa Leite</a>, <a href="https://www.linkedin.com/in/dolemes/">David de Oliveira Lemes</a>, <a href="https://www.linkedin.com/in/leonardo-fabris-lugoboni-a3369416/">Leonardo Fabris Lugoboni</a>, Katia Milani Lara Bossi, Francisco de Souza Escobar
 
