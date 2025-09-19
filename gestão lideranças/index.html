@@ -21,6 +21,9 @@
       @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
       .card { background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.06); padding:16px; }
       .btn { background: var(--green); color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; }
+      .btn-sm { padding:6px 10px; border-radius:999px; font-size: 0.92rem; }
+      .btn-ghost { background:transparent; color: var(--green); border:1px solid rgba(25,135,84,.22); }
+      .btn-ghost:hover { background: rgba(25,135,84,.06); }
       .btn-danger { background:#dc3545; }
       .input { padding:10px 12px; border:1px solid #ced4da; border-radius:8px; width:100%; }
       table { width:100%; border-collapse: collapse; }
@@ -304,7 +307,7 @@
                       <th style={{ padding:8 }}>Categoria</th>
                       <th style={{ padding:8 }}>Valor</th>
                       <th style={{ padding:8 }}>Aluno</th>
-                      <th style={{ padding:8 }}>Ações</th>
+                      <th style={{ padding:8, textAlign:'right' }}>Ações</th>
                     </tr>
                   </thead>
                   <tbody ref={tbodyRef}>
@@ -319,9 +322,19 @@
                         <td style={{ padding:8 }}>{p.category}</td>
                         <td style={{ padding:8 }}>{p.category==='fundos' ? `R$ ${p.amount.toFixed(2)}` : `${p.amount} ${p.unit||''}`}</td>
                         <td style={{ padding:8 }}>{p.user?.name || '-'}</td>
-                        <td style={{ padding:8, display:'flex', gap:8 }}>
-                          <button className="btn" onClick={()=>doApprove(p.id)}>Aprovar</button>
-                          <button className="btn btn-danger" onClick={()=>doReject(p.id)}>Rejeitar</button>
+                        <td style={{ padding:8 }}>
+                          <div style={{ display:'inline-flex', gap:8, alignItems:'center' }}>
+                            {p.photos && p.photos.length > 0 && (
+                              <button
+                                className="btn btn-ghost btn-sm"
+                                onClick={()=>openPhotos(p)}
+                              >
+                                Visualizar
+                              </button>
+                            )}
+                            <button className="btn btn-sm" onClick={()=>doApprove(p.id)}>Aprovar</button>
+                            <button className="btn btn-danger btn-sm" onClick={()=>doReject(p.id)}>Rejeitar</button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -771,17 +784,7 @@
           <>
             <Header title="Gestão de Lideranças" user={user} onLogout={handleLogout} />
             {user.role === 'admin' ? (
-              <>
-                <AdminDashboard />
-                <div className="container" style={{ paddingTop: 0 }}>
-                  <div className="grid-2" style={{ marginTop: 16 }}>
-                    <Card title="Cadastro e Lista">
-                      <div style={{ color:'#6c757d', marginBottom:8 }}>Gerencie os leaders pelo formulário e tabela.</div>
-                      <LeadersSection />
-                    </Card>
-                  </div>
-                </div>
-              </>
+              <AdminDashboard />
             ) : user.role === 'mentor' ? (
               <MentorApprovalSection />
             ) : (
