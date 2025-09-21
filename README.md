@@ -20,20 +20,12 @@
 
 ## 🛠 Estrutura de pastas
 
--Raiz<br>
+\-Raiz<br>
 |<br>
-|-->documentos<br>
-  &emsp;|-->antigos<br>
-  &emsp;|Documentação.docx<br>
-|-->executáveis<br>
-  &emsp;|-->windows<br>
-  &emsp;|-->android<br>
-  &emsp;|-->HTML<br>
-|-->imagens<br>
-|-->src<br>
-  &emsp;|-->Backend<br>
-  &emsp;|-->Frontend<br>
-|readme.md<br>
+|--\>documentos<br>
+|--\>src<br>
+|.gitignore<br>
+|README.md
 
 
 ## 📋 Licença/License
@@ -49,7 +41,6 @@ Aqui estão as referências usadas no projeto.
 3.  [https://chooser-beta.creativecommons.org/](https://chooser-beta.creativecommons.org/)
 4.  [https://freesound.org/](https://freesound.org/)
 5.  [https://www.toptal.com/developers/gitignore](https://www.toptal.com/developers/gitignore)
-6.  Músicas por: \<a href="https://freesound.org/people/DaveJf/sounds/616544/"\> DaveJf \</a\> e \<a href="https://freesound.org/people/DRFX/sounds/338986/"\> DRFX \</a\> ambas com Licença CC 0.
 
 Projeto Lideranças Empáticas/Portal do Doador
 
