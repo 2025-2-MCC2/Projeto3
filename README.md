@@ -47,4 +47,4 @@ Projeto Lideranças Empáticas/Portal do Doador
 
 Modelagem Banco de Dados
 
- A modelagem completa do banco de dados está disponível neste arquivo: [Projeto BD](./src/Entrega%201/BD/README.md)
+ A modelagem completa do banco de dados está disponível neste arquivo: [Projeto BD](./src/Entrega%201/Projetos_em_Banco_de_Dados/README.md)
