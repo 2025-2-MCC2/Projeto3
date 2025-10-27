@@ -44,4 +44,5 @@ Aqui estão as referências usadas no projeto.
 
 Modelagem Banco de Dados
 
- A modelagem completa do banco de dados está disponível neste arquivo: [README da Entrega 1](https://github.com/2025-2-MCC2/Projeto3/blob/main/src/Entrega%201/
+ A modelagem completa do banco de dados está disponível neste arquivo:  [Projeto BD](./src/Entrega%201/Projetos%20em%20Banco%20de%20Dados/README.md)
+
