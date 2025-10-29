@@ -42,9 +42,7 @@ Aqui estão as referências usadas no projeto.
 4.  [https://freesound.org/](https://freesound.org/)
 5.  [https://www.toptal.com/developers/gitignore](https://www.toptal.com/developers/gitignore)
 
-Projeto Lideranças Empáticas/Portal do Doador
-
-
 Modelagem Banco de Dados
 
- A modelagem completa do banco de dados está disponível neste arquivo: [Projeto BD](./src/Entrega%201/BD/README.md)
+ A modelagem completa do banco de dados está disponível neste arquivo:  [Projeto BD](./src/Entrega%201/Projetos%20em%20Banco%20de%20Dados/README.md)
+
