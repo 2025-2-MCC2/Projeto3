@@ -36,6 +36,24 @@
       @keyframes scaleIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
       .anim-fade { animation: fadeInUp .5s ease both; }
       .anim-scale { animation: scaleIn .4s ease both; }
+      /* New animations and smooth interactions */
+      @keyframes slideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes popIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+      .anim-slide { animation: slideIn .5s ease both; }
+      .anim-pop { animation: popIn .35s ease both; }
+      .reveal { opacity: 0; transform: translateY(10px); }
+      .reveal.in-view { opacity: 1; transform: none; transition: opacity .5s ease, transform .5s ease; }
+
+      .card { transition: transform .2s ease, box-shadow .2s ease; }
+      .card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,0,0,.08); }
+      .btn { transition: transform .15s ease, box-shadow .15s ease, background-color .2s ease; }
+      .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(25,135,84,.25); }
+      tbody tr { transition: background-color .2s ease, transform .15s ease; }
+      tbody tr:hover { transform: scale(1.003); }
+
+      @media (prefers-reduced-motion: reduce) {
+        * { animation: none !important; transition: none !important; }
+      }
     </style>
   </head>
   <body>
@@ -362,7 +380,45 @@
       }
 
       // === Admin Dashboard (KPIs + Charts + Ranking) ===
+      function AnimatedNumber({ value, duration = 800, format }) {
+        const [display, setDisplay] = useState(0);
+        useEffect(() => {
+          if (typeof value !== 'number') { setDisplay(0); return; }
+          let raf; const start = performance.now();
+          const from = 0; const to = value;
+          const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+          const step = (now) => {
+            const p = Math.min(1, (now - start) / duration);
+            const eased = easeOut(p);
+            setDisplay(from + (to - from) * eased);
+            if (p < 1) raf = requestAnimationFrame(step);
+          };
+          raf = requestAnimationFrame(step);
+          return () => cancelAnimationFrame(raf);
+        }, [value, duration]);
+        const text = format ? format(display) : Math.round(display).toString();
+        return <span>{text}</span>;
+      }
+
+      function useRevealOnScroll() {
+        useEffect(() => {
+          const els = Array.from(document.querySelectorAll('.reveal'));
+          if (!('IntersectionObserver' in window)) {
+            els.forEach(el => el.classList.add('in-view'));
+            return;
+          }
+          const io = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) entry.target.classList.add('in-view');
+            });
+          }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
+          els.forEach(el => io.observe(el));
+          return () => io.disconnect();
+        }, []);
+      }
+
       function AdminDashboard() {
+        useRevealOnScroll();
         const [leaders, setLeaders] = useState([]);
         const [donations, setDonations] = useState([]);
         const [loading, setLoading] = useState(false);
@@ -465,7 +521,18 @@
             <div style={{ display:'grid', gridTemplateRows: `${height}px auto`, gap:8 }}>
               <div style={{ display:'grid', gridAutoFlow:'column', alignItems:'end', gap:12, height }}>
                 {data.map((d, i) => (
-                  <div key={d.name} className="anim-fade" style={{ background:'#198754', width:24, height: Math.max(6, (d.total/max)*height), borderRadius:6 }} title={`${d.name}: ${d.total}`} />
+                  <div
+                    key={d.name}
+                    className="anim-fade reveal"
+                    style={{
+                      background:'#198754',
+                      width:24,
+                      height: Math.max(6, (d.total/max)*height),
+                      borderRadius:6,
+                      transition: 'height .6s ease, transform .2s ease',
+                    }}
+                    title={`${d.name}: ${d.total}`}
+                  />
                 ))}
               </div>
               <div style={{ display:'grid', gridAutoFlow:'column', gap:12, fontSize:12, color:'#495057' }}>
@@ -515,39 +582,39 @@
 
             {/* KPIs de Leaders */}
             <div className="grid-2 anim-fade" style={{ gridTemplateColumns:'repeat(3, 1fr)' }}>
-              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Total de Leaders</div><div style={{ fontSize:28, fontWeight:800 }}>{totalLeaders}</div></div>
-              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Alunos</div><div style={{ fontSize:28, fontWeight:800 }}>{totalAlunos}</div></div>
-              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Mentores</div><div style={{ fontSize:28, fontWeight:800 }}>{totalMentores}</div></div>
+              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Total de Leaders</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={totalLeaders} /></div></div>
+              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Alunos</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={totalAlunos} /></div></div>
+              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Mentores</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={totalMentores} /></div></div>
             </div>
 
             {/* KPIs de Doações */}
             <div className="grid-2 anim-fade" style={{ gridTemplateColumns:'repeat(3, 1fr)', marginTop:16 }}>
-              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Alimentos (kg)</div><div style={{ fontSize:28, fontWeight:800 }}>{dFood.toFixed(2)}</div></div>
-              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Fundos (R$)</div><div style={{ fontSize:28, fontWeight:800 }}>{dFunds.toFixed(2)}</div></div>
-              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Brinquedos (un)</div><div style={{ fontSize:28, fontWeight:800 }}>{dToys}</div></div>
+              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Alimentos (kg)</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={dFood} duration={900} format={(v)=>v.toFixed(2)} /></div></div>
+              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Fundos (R$)</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={dFunds} duration={900} format={(v)=>v.toFixed(2)} /></div></div>
+              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Brinquedos (un)</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={dToys} /></div></div>
             </div>
 
             {/* Resumo de Status */}
             <div className="grid-2 anim-fade" style={{ gridTemplateColumns:'repeat(3, 1fr)', marginTop:16 }}>
-              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Pendentes</div><div style={{ fontSize:28, fontWeight:800 }}>{cPending}</div></div>
-              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Aprovadas</div><div style={{ fontSize:28, fontWeight:800 }}>{cApproved}</div></div>
-              <div className="card"><div style={{ color:'#0f5132', fontWeight:700 }}>Rejeitadas</div><div style={{ fontSize:28, fontWeight:800 }}>{cRejected}</div></div>
+              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Pendentes</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cPending} /></div></div>
+              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Aprovadas</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cApproved} /></div></div>
+              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Rejeitadas</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cRejected} /></div></div>
             </div>
 
             {/* Charts */}
             <div className="grid-2" style={{ marginTop:16 }}>
-              <div className="card anim-scale">
+              <div className="card anim-scale reveal">
                 <div style={{ fontWeight:700, marginBottom:8, color:'#0f5132' }}>Doações por Categoria</div>
                 {byCategory.some(c=>c.total>0) ? <PieChartSVG data={byCategory} /> : <span style={{ color:'#6c757d' }}>Nenhum dado (apenas aprovadas)</span>}
               </div>
-              <div className="card anim-scale">
+              <div className="card anim-scale reveal">
                 <div style={{ fontWeight:700, marginBottom:8, color:'#0f5132' }}>Totais por Categoria</div>
                 {byCategory.some(c=>c.total>0) ? <BarChart data={byCategory} /> : <span style={{ color:'#6c757d' }}>Nenhum dado (apenas aprovadas)</span>}
               </div>
             </div>
 
             {/* Ranking por Doações Aprovadas (ordenar por categoria) */}
-            <div className="card anim-fade" style={{ marginTop:16 }}>
+            <div className="card anim-fade reveal" style={{ marginTop:16 }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
                 <div style={{ fontWeight:700, color:'#0f5132' }}>Ranking de Equipes (Doações Aprovadas)</div>
                 <RankingControls />
