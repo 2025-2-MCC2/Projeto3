@@ -19,8 +19,22 @@
       .container { max-width: 1200px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
       .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
       @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
-      .card { background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.06); padding:16px; }
+      .card { background:#fff; border-radius:14px; box-shadow:0 10px 28px rgba(0,0,0,.06); padding:16px; border:1px solid #eef1f3; }
       .btn { background: var(--green); color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; }
+      /* Modern dashboards: utilities */
+      .grid-auto { display:grid; grid-template-columns: repeat(12, minmax(0,1fr)); gap:16px; }
+      .col-3 { grid-column: span 3; }
+      .col-4 { grid-column: span 4; }
+      .col-6 { grid-column: span 6; }
+      .col-8 { grid-column: span 8; }
+      .col-12 { grid-column: 1 / -1; }
+      @media (max-width: 1200px){ .col-3{grid-column: span 6;} .col-4{grid-column: span 6;} .col-6{grid-column: span 12;} .col-8{grid-column: span 12;} }
+      @media (max-width: 900px){ .col-3{grid-column: span 12;} .col-4{grid-column: span 12;} }
+      .badge { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; font-size:12px; background: rgba(25,135,84,.08); color: var(--green-dark); border:1px solid rgba(25,135,84,.2); }
+      .chip { padding:4px 8px; border-radius:999px; background:#f1f3f5; color:#495057; font-size:12px; }
+      .muted { color:#6c757d; }
+      .subtitle { color:#0f5132; font-weight:700; }
+      .divider { height:1px; background:#eef1f3; margin:8px 0; }
       .btn-sm { padding:6px 10px; border-radius:999px; font-size: 0.92rem; }
       .btn-ghost { background:transparent; color: var(--green); border:1px solid rgba(25,135,84,.22); }
       .btn-ghost:hover { background: rgba(25,135,84,.06); }
@@ -36,6 +50,20 @@
       @keyframes scaleIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
       .anim-fade { animation: fadeInUp .5s ease both; }
       .anim-scale { animation: scaleIn .4s ease both; }
+      /* Auth styles */
+      .auth-bg { background: radial-gradient(1200px 600px at 10% -10%, rgba(25,135,84,.12), transparent), linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%); }
+      .auth-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 0; width:100%; max-width: 1040px; }
+      .auth-col-illustration { display:none; background: linear-gradient(180deg, rgba(25,135,84,.08), rgba(25,135,84,.02)); border-radius: 16px 0 0 16px; padding:32px; }
+      .auth-card { background:#fff; border:1px solid #eef1f3; border-radius: 0 16px 16px 0; padding:40px 36px; box-shadow:0 20px 60px rgba(0,0,0,.06); }
+      @media (min-width: 960px){ .auth-col-illustration{display:block;} .auth-grid{border-radius:16px; overflow:hidden;} .auth-card{border-radius:0 16px 16px 0;} }
+      .input-group { position: relative; }
+      .input-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#6c757d; }
+      .input.has-icon { padding-left:34px; }
+      .link-ghost { background:transparent; color: var(--green); border:none; cursor:pointer; padding:6px 8px; border-radius:8px; }
+      .link-ghost:hover { background: rgba(25,135,84,.06); }
+      .text-center { text-align:center; }
+      .row { display:flex; gap:12px; align-items:center; justify-content:space-between; }
+      .help { font-size:12px; color:#6c757d; }
       /* New animations and smooth interactions */
       @keyframes slideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
       @keyframes popIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
@@ -53,6 +81,33 @@
 
       @media (prefers-reduced-motion: reduce) {
         * { animation: none !important; transition: none !important; }
+      }
+
+      /* Mobile-first enhancements (only phones/tablets) */
+      @media (max-width: 768px) {
+        body { font-size: 15px; }
+        header { padding: 12px 16px; }
+        .container { padding: 12px; }
+        .card { padding: 14px; border-radius: 12px; }
+        .grid-auto { grid-template-columns: 1fr; gap: 12px; }
+        .col-3, .col-4, .col-6, .col-8, .col-12 { grid-column: 1 / -1; }
+        table { font-size: 14px; }
+        th, td { padding: 6px; }
+        .btn { padding: 10px 12px; border-radius: 10px; }
+        /* Login logos smaller */
+        .auth-logo-lg { height: 48px !important; }
+        .auth-logo-sm { height: 40px !important; }
+        /* Inputs larger to avoid iOS zoom */
+        .input { font-size: 16px; }
+        /* Collapse multi-column forms */
+        form[style*='grid-template-columns:repeat(4'] { grid-template-columns: 1fr !important; }
+        form[style*='grid-template-columns:repeat(3'] { grid-template-columns: 1fr !important; }
+        /* Compact previews */
+        img[alt^='Foto '] { width: 56px !important; height: 56px !important; }
+        /* Tables: keep single line and scroll */
+        table { table-layout: fixed; }
+        th, td { white-space: nowrap; }
+      }
       }
     </style>
   </head>
@@ -421,6 +476,7 @@
         useRevealOnScroll();
         const [leaders, setLeaders] = useState([]);
         const [donations, setDonations] = useState([]);
+        const [periodDays, setPeriodDays] = useState(30); // 7 | 30 | 90 | 0 (todos)
         const [loading, setLoading] = useState(false);
         const [error, setError] = useState("");
         const BASE_URL = (window.__ENV && window.__ENV.API_URL) || 'http://localhost:3001';
@@ -457,7 +513,14 @@
         // Agrupamentos por equipe e por role
         // Ranking: baseado em doações APROVADAS por equipe (valores por categoria)
         const approved = donations.filter(d => d.status === 'Aprovada');
-        const donationsByTeam = approved.reduce((acc, d) => {
+        // Janela de período
+        const nowTs = Date.now();
+        const fromTs = periodDays && periodDays > 0 ? nowTs - periodDays*24*3600*1000 : 0;
+        const approvedWindow = approved.filter(d => {
+          const ts = new Date(d.updatedAt || d.updated_at || d.createdAt || d.created_at || 0).getTime();
+          return fromTs === 0 || ts >= fromTs;
+        });
+        const donationsByTeam = approvedWindow.reduce((acc, d) => {
           const team = d.team || '—';
           acc[team] = acc[team] || { food:0, funds:0, toys:0 };
           if (d.category==='alimento') acc[team].food += (d.amount||0);
@@ -476,9 +539,9 @@
         const totalMentores = byRole['mentor'] || byRole['Mentor'] || 0;
 
         // KPIs de Doações por categoria (apenas Aprovadas)
-        const dFood = approved.filter(d=>d.category==='alimento').reduce((s,d)=>s+(d.amount||0),0);
-        const dFunds = approved.filter(d=>d.category==='fundos').reduce((s,d)=>s+(d.amount||0),0);
-        const dToys = approved.filter(d=>d.category==='brinquedos').reduce((s,d)=>s+(d.amount||0),0);
+        const dFood = approvedWindow.filter(d=>d.category==='alimento').reduce((s,d)=>s+(d.amount||0),0);
+        const dFunds = approvedWindow.filter(d=>d.category==='fundos').reduce((s,d)=>s+(d.amount||0),0);
+        const dToys = approvedWindow.filter(d=>d.category==='brinquedos').reduce((s,d)=>s+(d.amount||0),0);
         const byCategory = [
           { name: 'Alimentos (kg)', total: dFood },
           { name: 'Fundos (R$)', total: dFunds },
@@ -488,6 +551,67 @@
         const cPending = donations.filter(d=>d.status==='Pendente').length;
         const cApproved = approved.length;
         const cRejected = donations.filter(d=>d.status==='Rejeitada').length;
+
+        // KPI avançados: taxa de aprovação, tempo médio de aprovação, pendências antigas
+        const approvalRate = (cApproved + cRejected) > 0 ? (cApproved / (cApproved + cRejected)) : 0;
+        const avgApprovalMs = (() => {
+          const times = approved
+            .map(d => {
+              const created = new Date(d.createdAt || d.created_at || Date.now());
+              const updated = new Date(d.updatedAt || d.updated_at || d.createdAt || Date.now());
+              return Math.max(0, updated - created);
+            })
+            .filter(v => Number.isFinite(v) && v>0);
+          if (!times.length) return 0;
+          return times.reduce((s,v)=>s+v,0) / times.length;
+        })();
+        const avgApprovalHours = avgApprovalMs / (1000*60*60);
+        const agingPend = donations
+          .filter(d => d.status==='Pendente')
+          .map(d => ({ d, ageDays: (Date.now() - new Date(d.createdAt || d.created_at || Date.now()))/(1000*60*60*24) }))
+          .filter(x => x.ageDays >= 3)
+          .length;
+
+        // Trend: aprovadas por dia (período selecionado; mínimo 14 dias), usando updatedAt (ou createdAt)
+        function startOfDay(ts){ const d = new Date(ts); d.setHours(0,0,0,0); return d.getTime(); }
+        const today = startOfDay(Date.now());
+        const span = Math.max(14, periodDays || 14);
+        const days = Array.from({length:span}).map((_,i)=> today - (span-1-i)*24*3600*1000);
+        const approvalsByDay = days.map(day => {
+          const next = day + 24*3600*1000;
+          const total = approvedWindow.filter(d => {
+            const stamp = new Date(d.updatedAt || d.updated_at || d.createdAt || d.created_at || Date.now()).getTime();
+            return stamp >= day && stamp < next;
+          }).length;
+          return { day, total };
+        });
+        const maxTrend = Math.max(1, ...approvalsByDay.map(p=>p.total));
+
+        // Crescimento 7d por equipe
+        const sevenAgo = Date.now() - 7*24*3600*1000;
+        const approved7 = approved.filter(d => new Date(d.updatedAt || d.updated_at || d.createdAt || 0).getTime() >= sevenAgo);
+        const totalsNow = donationsByTeam;
+        const totals7 = approved7.reduce((acc, d) => {
+          const team = d.team || '—';
+          acc[team] = acc[team] || { food:0, funds:0, toys:0 };
+          if (d.category==='alimento') acc[team].food += (d.amount||0);
+          else if (d.category==='fundos') acc[team].funds += (d.amount||0);
+          else if (d.category==='brinquedos') acc[team].toys += (d.amount||0);
+          return acc;
+        }, {});
+        function growthFor(team){
+          const now = totalsNow[team] || {food:0,funds:0,toys:0};
+          const last = totals7[team] || {food:0,funds:0,toys:0};
+          const nowSum = (now.food||0)+(now.funds||0)+(now.toys||0);
+          const lastSum = (last.food||0)+(last.funds||0)+(last.toys||0);
+          return lastSum; // crescimento absoluto na última semana
+        }
+
+        // Atividade recente (últimos 10 eventos)
+        const recent = [...donations]
+          .filter(d => d.updatedAt || d.createdAt)
+          .sort((a,b)=> new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
+          .slice(0,10);
 
         // Cores para gráficos
         const COLORS = ['#006400', '#0E7A0D', '#1E9E1B', '#2ECF25', '#65DB6B', '#A0E7A5'];
@@ -564,53 +688,114 @@
 
         return (
           <div className="container" style={{ paddingTop: 0 }}>
-            {/* Header + Atualizar */}
+            {/* Header + Filtros + Atualizar */}
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
               <div style={{ fontWeight:800, color:'#0f5132' }}>Painel do Administrador</div>
-              <button className="btn" onClick={()=>{
-                // Recarrega leaders e donations
-                (async () => {
-                  try {
-                    const res = await fetch(`${BASE_URL}/api/leaders`);
-                    const json = await res.json();
-                    if (res.ok) setLeaders(json.data || []);
-                  } catch {}
-                  setDonations(listAllDonations());
-                })();
-              }}>Atualizar</button>
+              <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                <select className="input" style={{ width:160, padding:'6px 10px' }} value={periodDays} onChange={(e)=>setPeriodDays(parseInt(e.target.value,10))}>
+                  <option value={7}>Últimos 7 dias</option>
+                  <option value={30}>Últimos 30 dias</option>
+                  <option value={90}>Últimos 90 dias</option>
+                  <option value={0}>Todos</option>
+                </select>
+                <button className="btn" onClick={()=>{
+                  // Recarrega leaders e donations
+                  (async () => {
+                    try {
+                      const res = await fetch(`${BASE_URL}/api/leaders`);
+                      const json = await res.json();
+                      if (res.ok) setLeaders(json.data || []);
+                    } catch {}
+                    setDonations(listAllDonations());
+                  })();
+                }}>Atualizar</button>
+                <button className="btn btn-ghost" onClick={()=>{
+                  const rows = getRankingRows().map((row, i) => ({
+                    rank: i+1,
+                    team: row.team,
+                    alimentos_kg: row.food.toFixed(2),
+                    fundos_rs: row.funds.toFixed(2),
+                    brinquedos_un: row.toys,
+                    crescimento_7d: (growthFor(row.team)).toFixed(2)
+                  }));
+                  const headers = Object.keys(rows[0] || { rank:'', team:'', alimentos_kg:'', fundos_rs:'', brinquedos_un:'', crescimento_7d:'' });
+                  const csv = [headers.join(','), ...rows.map(r => headers.map(h => `${String(r[h]).replace(/"/g,'""')}`).join(','))].join('\n');
+                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url; a.download = `ranking_equipes_${periodDays||'todos'}d.csv`;
+                  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+                }}>Exportar CSV</button>
+              </div>
             </div>
 
-            {/* KPIs de Leaders */}
-            <div className="grid-2 anim-fade" style={{ gridTemplateColumns:'repeat(3, 1fr)' }}>
-              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Total de Leaders</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={totalLeaders} /></div></div>
-              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Alunos</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={totalAlunos} /></div></div>
-              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Mentores</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={totalMentores} /></div></div>
+            {/* KPIs de Leaders + avançados */}
+            <div className="grid-auto anim-fade">
+              <div className="card reveal anim-pop col-3"><div className="subtitle">Total de Leaders</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={totalLeaders} /></div><div className="muted" style={{ fontSize:12 }}>Equipe cadastrada</div></div>
+              <div className="card reveal anim-pop col-3"><div className="subtitle">Alunos</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={totalAlunos} /></div><div className="muted" style={{ fontSize:12 }}>Contas de aluno</div></div>
+              <div className="card reveal anim-pop col-3"><div className="subtitle">Mentores</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={totalMentores} /></div><div className="muted" style={{ fontSize:12 }}>Contas de mentor</div></div>
+              <div className="card reveal anim-pop col-3"><div className="subtitle">Taxa de Aprovação</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={approvalRate*100} format={(v)=>`${v.toFixed(0)}%`} /></div><div className="muted" style={{ fontSize:12 }}>Aprovadas / (Aprovadas + Rejeitadas)</div></div>
             </div>
 
-            {/* KPIs de Doações */}
-            <div className="grid-2 anim-fade" style={{ gridTemplateColumns:'repeat(3, 1fr)', marginTop:16 }}>
-              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Alimentos (kg)</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={dFood} duration={900} format={(v)=>v.toFixed(2)} /></div></div>
-              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Fundos (R$)</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={dFunds} duration={900} format={(v)=>v.toFixed(2)} /></div></div>
-              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Brinquedos (un)</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={dToys} /></div></div>
+            {/* KPIs de Doações + operacionais */}
+            <div className="grid-auto anim-fade" style={{ marginTop:16 }}>
+              <div className="card reveal anim-pop col-3"><div className="subtitle">Alimentos (kg)</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={dFood} duration={900} format={(v)=>v.toFixed(2)} /></div></div>
+              <div className="card reveal anim-pop col-3"><div className="subtitle">Fundos (R$)</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={dFunds} duration={900} format={(v)=>v.toFixed(2)} /></div></div>
+              <div className="card reveal anim-pop col-3"><div className="subtitle">Brinquedos (un)</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={dToys} /></div></div>
+              <div className="card reveal anim-pop col-3"><div className="subtitle">Tempo Médio de Aprovação</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={avgApprovalHours} format={(v)=>`${v.toFixed(1)} h`} /></div><div className="muted" style={{ fontSize:12 }}>Intervalo entre registro e aprovação</div></div>
             </div>
 
             {/* Resumo de Status */}
-            <div className="grid-2 anim-fade" style={{ gridTemplateColumns:'repeat(3, 1fr)', marginTop:16 }}>
-              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Pendentes</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cPending} /></div></div>
-              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Aprovadas</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cApproved} /></div></div>
-              <div className="card reveal anim-pop"><div style={{ color:'#0f5132', fontWeight:700 }}>Rejeitadas</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cRejected} /></div></div>
+            <div className="grid-auto anim-fade" style={{ marginTop:16 }}>
+              <div className="card reveal anim-pop col-4"><div className="subtitle">Pendentes</div><div style={{ display:'flex', alignItems:'baseline', gap:12 }}><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cPending} /></div>{agingPend>0 && <span className="badge">{agingPend} 3d+</span>}</div></div>
+              <div className="card reveal anim-pop col-4"><div className="subtitle">Aprovadas</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cApproved} /></div></div>
+              <div className="card reveal anim-pop col-4"><div className="subtitle">Rejeitadas</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cRejected} /></div></div>
             </div>
 
             {/* Charts */}
-            <div className="grid-2" style={{ marginTop:16 }}>
-              <div className="card anim-scale reveal">
-                <div style={{ fontWeight:700, marginBottom:8, color:'#0f5132' }}>Doações por Categoria</div>
-                {byCategory.some(c=>c.total>0) ? <PieChartSVG data={byCategory} /> : <span style={{ color:'#6c757d' }}>Nenhum dado (apenas aprovadas)</span>}
+            <div className="grid-auto" style={{ marginTop:16 }}>
+              <div className="card anim-scale reveal col-6">
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <div className="subtitle">Doações por Categoria</div>
+                  <span className="chip">Somente aprovadas</span>
+                </div>
+                {byCategory.some(c=>c.total>0) ? <PieChartSVG data={byCategory} /> : <span style={{ color:'#6c757d' }}>Nenhum dado</span>}
               </div>
-              <div className="card anim-scale reveal">
-                <div style={{ fontWeight:700, marginBottom:8, color:'#0f5132' }}>Totais por Categoria</div>
-                {byCategory.some(c=>c.total>0) ? <BarChart data={byCategory} /> : <span style={{ color:'#6c757d' }}>Nenhum dado (apenas aprovadas)</span>}
+              <div className="card anim-scale reveal col-6">
+                <div className="subtitle" style={{ marginBottom:8 }}>Totais por Categoria</div>
+                {byCategory.some(c=>c.total>0) ? <BarChart data={byCategory} /> : <span style={{ color:'#6c757d' }}>Nenhum dado</span>}
               </div>
+            </div>
+
+            {/* Trend: aprovações por dia (14d) */}
+            <div className="card anim-fade reveal" style={{ marginTop:16 }}>
+              <div className="subtitle" style={{ marginBottom:8 }}>Aprovações nos últimos 14 dias</div>
+              {(() => {
+                const width = 760; const height = 220; const padding = 24; const maxY = maxTrend;
+                const points = approvalsByDay.map((p,i)=>{
+                  const x = padding + (i/(approvalsByDay.length-1))*(width - padding*2);
+                  const y = padding + (1 - (p.total / maxY))*(height - padding*2);
+                  return { x, y, v: p.total };
+                });
+                const path = points.map((pt,i)=> `${i===0?'M':'L'} ${pt.x} ${pt.y}`).join(' ');
+                return (
+                  <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ width:'100%', height:'auto' }}>
+                    <defs>
+                      <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor="#198754" stopOpacity="0.28" />
+                        <stop offset="100%" stopColor="#198754" stopOpacity="0.02" />
+                      </linearGradient>
+                    </defs>
+                    <path d={path} fill="none" stroke="#198754" strokeWidth="2" />
+                    <path d={`${path} L ${width-padding} ${height-padding} L ${padding} ${height-padding} Z`} fill="url(#g)" opacity="0.8" />
+                    {points.map((pt,i)=> (
+                      <g key={i}>
+                        <circle cx={pt.x} cy={pt.y} r="3" fill="#0f5132" />
+                      </g>
+                    ))}
+                  </svg>
+                );
+              })()}
             </div>
 
             {/* Ranking por Doações Aprovadas (ordenar por categoria) */}
@@ -628,6 +813,7 @@
                       <th style={{ padding:8 }}>Alimentos (kg)</th>
                       <th style={{ padding:8 }}>Fundos (R$)</th>
                       <th style={{ padding:8 }}>Brinquedos (un)</th>
+                      <th style={{ padding:8 }}>Crescimento 7d</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -638,6 +824,9 @@
                         <td style={{ padding:8 }}>{row.food.toFixed(2)}</td>
                         <td style={{ padding:8 }}>{row.funds.toFixed(2)}</td>
                         <td style={{ padding:8 }}>{row.toys}</td>
+                        <td style={{ padding:8 }}>
+                          {(() => { const g = growthFor(row.team); const sign = g>0?'+':''; return <span className="badge" title="Aprovadas na última semana">{sign}{(g).toFixed(2)}</span>; })()}
+                        </td>
                       </tr>
                     ))}
                     {!teamsData.length && (
@@ -646,6 +835,28 @@
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            {/* Atividade recente */}
+            <div className="card anim-fade reveal" style={{ marginTop:16 }}>
+              <div className="subtitle" style={{ marginBottom:8 }}>Atividade recente</div>
+              <div className="divider"></div>
+              {recent.length === 0 ? (
+                <div className="muted">Sem eventos recentes</div>
+              ) : (
+                <div style={{ display:'grid', gap:8 }}>
+                  {recent.map((r, idx) => (
+                    <div key={idx} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                        <span className="chip">{r.status}</span>
+                        <span>{r.description}</span>
+                        <span className="muted" style={{ fontSize:12 }}>{r.team || '—'}</span>
+                      </div>
+                      <span className="muted" style={{ fontSize:12 }}>{new Date(r.updatedAt || r.createdAt).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             {error && <div style={{ color:'#dc3545', marginTop:8 }}>{error}</div>}
           </div>
@@ -757,6 +968,8 @@
         const [confirm, setConfirm] = React.useState("");
         const [role, setRole] = React.useState("aluno");
         const [error, setError] = React.useState("");
+        const [showPwd, setShowPwd] = React.useState(false);
+        const [remember, setRemember] = React.useState(true);
 
         const submit = (e) => {
           e.preventDefault();
@@ -772,23 +985,20 @@
           }
         };
 
-        const Title = () => (
+      const Title = () => (
           <div style={{ textAlign:'center', marginBottom:24 }} className="anim-fade">
             <div style={{ fontSize:28, fontWeight:800, color:'#0f5132' }}>{mode === 'login' ? 'Entrar' : 'Criar Conta'}</div>
-            <div style={{ color:'#6c757d' }}>{mode === 'login' ? 'Acesse a plataforma' : 'Cadastre-se na plataforma'}</div>
           </div>
         );
 
         return (
           <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f8f9fa', padding:20 }}>
             <div className="card anim-scale" style={{ width: '100%', maxWidth: 560, padding:'40px 36px' }}>
-              {/* Logos */}
               <div style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:40, marginBottom:24 }} className="anim-fade">
-                <img src="./public/logos/liderancas-empaticas.png" alt="Lideranças Empáticas" style={{ height:64 }} />
-                <img src="./public/logos/logo fecap.webp" alt="FECAP" style={{ height:48 }} />
+                <img className="auth-logo-lg" src="./public/logos/liderancas-empaticas.png" alt="Lideranças Empáticas" style={{ height:64 }} />
+                <img className="auth-logo-sm" src="./public/logos/logo fecap.webp" alt="FECAP" style={{ height:48 }} />
               </div>
               <Title />
-              {/* Form */}
               <form onSubmit={submit} style={{ display:'grid', gap:12 }} className="anim-fade">
                 {mode === 'register' && (
                   <>
