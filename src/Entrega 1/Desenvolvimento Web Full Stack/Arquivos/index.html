@@ -142,6 +142,54 @@
         font-size:12px;
         border:1px solid rgba(255,255,255,0.08);
       }
+      .risk-badge {
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        border-radius:999px;
+        padding:4px 10px;
+        font-size:11px;
+        letter-spacing:0.4px;
+        text-transform:uppercase;
+        background: rgba(255,255,255,0.06);
+        border:1px solid rgba(255,255,255,0.08);
+      }
+      .risk-badge svg { width:14px; height:14px; }
+      .risk-low { color:#4df2c2; border-color:rgba(77, 242, 194, 0.4); background: rgba(77, 242, 194, 0.08); }
+      .risk-medium { color:#ffd45f; border-color:rgba(255,212,95,0.45); background: rgba(255,212,95,0.12); }
+      .risk-high { color:#ff7b7b; border-color:rgba(255,123,123,0.4); background: rgba(255,123,123,0.12); box-shadow:0 0 14px rgba(255,123,123,0.18); }
+      .audit-timeline {
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+        margin-top:12px;
+      }
+      .audit-timeline-item {
+        display:grid;
+        grid-template-columns: 18px 1fr;
+        gap:12px;
+        align-items:start;
+      }
+      .audit-timeline-item span {
+        font-size:12px;
+        color: rgba(233,254,246,0.65);
+      }
+      .audit-icon {
+        width:18px;
+        height:18px;
+        border-radius:50%;
+        background: rgba(77,242,194,0.16);
+        border:1px solid rgba(77,242,194,0.42);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:10px;
+        color:var(--green-neon);
+      }
+      .audit-divider {
+        height:1px;
+        background:rgba(77,242,194,0.12);
+      }
       .muted { color: var(--text-muted); }
       .subtitle {
         color:#f0fff8;
@@ -454,7 +502,6 @@
         .login-form .input { padding: 14px 16px; }
         .btn { width: 100%; }
       }
-      }
     </style>
   </head>
   <body>
@@ -478,33 +525,215 @@
       const LS_KEYS = {
         DONATIONS: 'gl_donations',
         PENDING: 'gl_donations_pending',
-        RECENT: 'gl_donations_recent'
+        RECENT: 'gl_donations_recent',
+        AUDIT: 'gl_donations_audit'
       };
       function lsGet(key, fallback=[]) { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; } }
       function lsSet(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
 
+      function hashString(str='') {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          hash = ((hash << 5) - hash) + str.charCodeAt(i);
+          hash |= 0;
+        }
+        return Math.abs(hash);
+      }
+
+      function fingerprintsFromPhotos(photos=[]) {
+        return photos.map((src, idx) => {
+          const sample = (src || '').slice(0, 120) + (src || '').slice(-60);
+          return `${hashString(sample)}-${idx}`;
+        });
+      }
+
+      function buildAuditEvent(donation, action, actor, extra={}) {
+        return {
+          id: `${donation.id}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          donationId: donation.id,
+          action,
+          actor,
+          timestamp: new Date().toISOString(),
+          extra
+        };
+      }
+
+      function pushAuditEvents(events=[]) {
+        if (!events.length) return;
+        if (events.length === 1 && events[0] == null) return;
+        const list = lsGet(LS_KEYS.AUDIT);
+        events.filter(Boolean).forEach(ev => list.unshift(ev));
+        if (list.length > 200) list.splice(200);
+        lsSet(LS_KEYS.AUDIT, list);
+      }
+
+      function listAuditTrail(limit=50) {
+        return lsGet(LS_KEYS.AUDIT).slice(0, limit);
+      }
+
+      function computeRiskScore({ donation, userHistory=[] }) {
+        let score = 0;
+        const amount = donation.amount || 0;
+        if (donation.category === 'fundos' && amount > 500) score += 6;
+        else if (donation.category === 'fundos' && amount > 200) score += 4;
+        if (donation.category !== 'fundos' && amount > 40) score += 2;
+        const now = Date.now();
+        const created = new Date(donation.createdAt || Date.now()).getTime();
+        if (now - created < 5 * 60 * 1000) score += 1; // envio muito rápido
+        if (!donation.photos || donation.photos.length < 2) score += 2;
+        const duplicates = fingerprintsFromPhotos(donation.photos);
+        const dupCount = userHistory.reduce((acc, prev) => {
+          const prevPrints = prev.fingerprints || [];
+          if (prev.id === donation.id) return acc;
+          const intersection = prevPrints.filter(p => duplicates.includes(p));
+          return intersection.length ? acc + 1 : acc;
+        }, 0);
+        score += dupCount * 5;
+        return score;
+      }
+
+      function mapRisk(score=0) {
+        if (score >= 10) return { level: 'Alto', className: 'risk-high' };
+        if (score >= 5) return { level: 'Médio', className: 'risk-medium' };
+        return { level: 'Baixo', className: 'risk-low' };
+      }
+
+      function normalizeDonationList(list=[]) {
+        const cloned = list.map(d => ({ ...d }));
+        const byUser = {};
+        cloned.forEach(d => {
+          if (!Array.isArray(d.photos)) d.photos = [];
+          if (!Array.isArray(d.fingerprints) || d.fingerprints.length === 0) {
+            d.fingerprints = fingerprintsFromPhotos(d.photos);
+          }
+          const key = d.user?.name || '__';
+          byUser[key] = byUser[key] || [];
+          byUser[key].push(d);
+        });
+        Object.values(byUser).forEach(items => {
+          items.sort((a,b)=> new Date(a.createdAt || a.updatedAt || 0) - new Date(b.createdAt || b.updatedAt || 0));
+          items.forEach((d, idx) => {
+            const history = items.filter((_, j) => j !== idx);
+            const score = computeRiskScore({ donation: d, userHistory: history });
+            const { level, className } = mapRisk(score);
+            d.riskScore = score;
+            d.riskLevel = level;
+            d.riskClass = className;
+            if (d.status === 'Pendente') {
+              d.needsEvidence = d.needsEvidence || level === 'Alto';
+            } else {
+              d.needsEvidence = false;
+            }
+          });
+        });
+        return cloned;
+      }
+
+      function syncDonationCaches() {
+        const normalized = normalizeDonationList(lsGet(LS_KEYS.DONATIONS));
+        lsSet(LS_KEYS.DONATIONS, normalized);
+        const byId = Object.fromEntries(normalized.map(d => [d.id, d]));
+        const pendingRaw = lsGet(LS_KEYS.PENDING).map(d => ({ ...byId[d.id], ...d }));
+        lsSet(LS_KEYS.PENDING, pendingRaw);
+        const recentRaw = lsGet(LS_KEYS.RECENT).map(d => ({ ...byId[d.id], ...d }));
+        lsSet(LS_KEYS.RECENT, recentRaw);
+        return {
+          normalized,
+          pending: pendingRaw,
+          recent: recentRaw
+        };
+      }
+
       function createDonation({ description, amount, category, unit, team, user, photos=[] }) {
         const all = lsGet(LS_KEYS.DONATIONS);
         const id = (all.reduce((m, d)=>Math.max(m, d.id||0), 0) + 1) || 1;
-        const donation = { id, description, amount: parseFloat(amount||0), category, unit, team: team||'', user, photos, status: 'Pendente', createdAt: new Date().toISOString() };
+        const donation = {
+          id,
+          description,
+          amount: parseFloat(amount||0),
+          category,
+          unit,
+          team: team||'',
+          user,
+          photos,
+          fingerprints: fingerprintsFromPhotos(photos),
+          status: 'Pendente',
+          createdAt: new Date().toISOString(),
+          riskScore: 0,
+          riskLevel: 'Baixo'
+        };
         all.push(donation); lsSet(LS_KEYS.DONATIONS, all);
         const pend = lsGet(LS_KEYS.PENDING); pend.push(donation); lsSet(LS_KEYS.PENDING, pend);
-        return donation;
+        pushAuditEvents([buildAuditEvent(donation, 'Registrada', user?.name || 'Aluno', { description })]);
+        const { normalized } = syncDonationCaches();
+        return normalized.find(d => d.id === id) || donation;
       }
-      function listPending() { return lsGet(LS_KEYS.PENDING); }
-      function listRecent() { return lsGet(LS_KEYS.RECENT); }
-      function listAllDonations() { return lsGet(LS_KEYS.DONATIONS); }
-      function listUserDonations(user) { const all = lsGet(LS_KEYS.DONATIONS); return all.filter(d => d.user?.name === user.name); }
+      function listPending() { return syncDonationCaches().pending; }
+      function listRecent() { return syncDonationCaches().recent; }
+      function listAllDonations() { return syncDonationCaches().normalized; }
+      function listUserDonations(user) { const all = listAllDonations(); return all.filter(d => d.user?.name === user.name); }
       function updateDonationStatus(id, status, motivo=null) {
         const all = lsGet(LS_KEYS.DONATIONS); const idx = all.findIndex(d=>d.id===id);
         if (idx>=0) {
           all[idx].status = status; all[idx].motivo = motivo; all[idx].updatedAt = new Date().toISOString();
+          if (status === 'Aprovada') {
+            all[idx].needsEvidence = false;
+            all[idx].riskScore = Math.min(all[idx].riskScore || 0, 2);
+            all[idx].riskLevel = 'Baixo';
+            all[idx].riskClass = 'risk-low';
+          }
           lsSet(LS_KEYS.DONATIONS, all);
           const pend = lsGet(LS_KEYS.PENDING).filter(d=>d.id!==id); lsSet(LS_KEYS.PENDING, pend);
           if (status === 'Aprovada') {
             const rec = lsGet(LS_KEYS.RECENT); rec.unshift(all[idx]); if (rec.length>50) rec.splice(50); lsSet(LS_KEYS.RECENT, rec);
           }
-          return all[idx];
+          pushAuditEvents([buildAuditEvent(all[idx], status === 'Aprovada' ? 'Aprovada' : 'Rejeitada', 'Mentor/Admin', { motivo })]);
+          const { normalized } = syncDonationCaches();
+          return normalized.find(d => d.id === id) || all[idx];
+        }
+        return null;
+      }
+
+      function flagDonationForEvidence(id, actor, reason='') {
+        const all = lsGet(LS_KEYS.DONATIONS); const idx = all.findIndex(d=>d.id===id);
+        if (idx >= 0) {
+          all[idx].needsEvidence = true;
+          all[idx].riskScore = Math.max(all[idx].riskScore || 0, 10);
+          all[idx].riskLevel = 'Alto';
+          all[idx].riskClass = 'risk-high';
+          lsSet(LS_KEYS.DONATIONS, all);
+          const pend = lsGet(LS_KEYS.PENDING).map(d => d.id === id ? { ...d, needsEvidence: true, riskLevel: 'Alto', riskClass: 'risk-high' } : d);
+          lsSet(LS_KEYS.PENDING, pend);
+          pushAuditEvents([buildAuditEvent(all[idx], 'Solicitada Evidência', actor || 'Mentor/Admin', { reason })]);
+          syncDonationCaches();
+          return true;
+        }
+        return false;
+      }
+
+      function appendEvidenceToDonation(id, photos=[], actor='Participante') {
+        const newPhotos = Array.from(photos || []);
+        if (!newPhotos.length) return null;
+        const all = lsGet(LS_KEYS.DONATIONS); const idx = all.findIndex(d=>d.id===id);
+        if (idx >= 0) {
+          const donation = all[idx];
+          const existingPrints = donation.fingerprints || [];
+          const incoming = fingerprintsFromPhotos(newPhotos);
+          const filtered = newPhotos.filter((src, i) => !existingPrints.includes(incoming[i]));
+          const filteredPrints = incoming.filter((hash) => !existingPrints.includes(hash));
+          if (!filtered.length) {
+            return donation;
+          }
+          donation.photos = [...(donation.photos || []), ...filtered];
+          donation.fingerprints = [...existingPrints, ...filteredPrints];
+          donation.updatedAt = new Date().toISOString();
+          donation.needsEvidence = false;
+          lsSet(LS_KEYS.DONATIONS, all);
+          const pend = lsGet(LS_KEYS.PENDING).map(d => d.id === id ? { ...d, photos: donation.photos, fingerprints: donation.fingerprints, needsEvidence: false } : d);
+          lsSet(LS_KEYS.PENDING, pend);
+          pushAuditEvents([buildAuditEvent(donation, 'Evidência Anexada', actor || 'Participante', { quantidade: filtered.length })]);
+          const { normalized } = syncDonationCaches();
+          return normalized.find(d => d.id === id) || donation;
         }
         return null;
       }
@@ -516,6 +745,7 @@
         const [success, setSuccess] = useState('');
         const [mine, setMine] = useState([]);
         const [teams, setTeams] = useState([]);
+        const [uploading, setUploading] = useState(false);
 
         const unitFor = (cat) => (cat==='alimento' ? 'kg' : cat==='fundos' ? 'R$' : 'un');
         const placeholderFor = (cat) => (cat==='alimento' ? 'Valor (kg)' : cat==='fundos' ? 'Valor (R$)' : 'Quantidade (un)');
@@ -556,7 +786,7 @@
         const submit = (e) => {
           e.preventDefault(); setError(''); setSuccess('');
           if (!form.description || !form.amount || !form.team) { setError('Preencha todos os campos (inclua a Equipe)'); return; }
-          if (!form.photos || form.photos.length === 0) { setError('Envie pelo menos uma foto do item'); return; }
+          if (!form.photos || form.photos.length < 2) { setError('Envie pelo menos duas fotos (item + contexto)'); return; }
           const amount = parseFloat(form.amount);
           if (isNaN(amount) || amount<=0) { setError('Valor inválido'); return; }
           const unit = unitFor(form.category);
@@ -564,6 +794,23 @@
           setForm({ description:'', amount:'', category: form.category, team: form.team, photos:[], previews:[] });
           setSuccess('Atividade registrada com sucesso!');
           loadMine();
+        };
+
+        const addEvidence = async (donationId, files) => {
+          if (!files || files.length === 0) return;
+          try {
+            setUploading(true); setError('');
+            const dataUrls = await readFilesAsDataUrls(files);
+            const updated = appendEvidenceToDonation(donationId, dataUrls, user?.name || 'Participante');
+            if (updated) {
+              setSuccess('Evidências adicionais anexadas com sucesso!');
+              loadMine();
+            }
+          } catch (e) {
+            setError('Não foi possível anexar as evidências. Tente novamente.');
+          } finally {
+            setUploading(false);
+          }
         };
 
         return (
@@ -590,7 +837,7 @@
                   <input className="input" placeholder={placeholderFor(form.category)} value={form.amount} onChange={(e)=>setForm(f=>({...f, amount:e.target.value}))} />
                   <div style={{ display:'grid', gap:8 }}>
                     <input className="input" type="file" accept="image/*" multiple onChange={onPhotosChange} />
-                    <div style={{ color:'#6c757d', fontSize:12 }}>Envie ao menos 1 foto do item (máx. 6)</div>
+                    <div style={{ color:'#6c757d', fontSize:12 }}>Envie ao menos 2 fotos: item e contexto (máx. 6)</div>
                     {form.previews && form.previews.length > 0 && (
                       <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
                         {form.previews.map((src, idx) => (
@@ -601,6 +848,7 @@
                   </div>
                   <div style={{ display:'flex', gap:12, alignItems:'center' }}>
                     <button className="btn" type="submit">Cadastrar</button>
+                    {uploading && <span className="muted">Enviando evidências…</span>}
                     {error && <span style={{ color:'#dc3545' }}>{error}</span>}
                     {success && <span style={{ color:'#198754' }}>{success}</span>}
                   </div>
@@ -617,10 +865,12 @@
                         <th style={{ padding:8 }}>Categoria</th>
                         <th style={{ padding:8 }}>Valor</th>
                         <th style={{ padding:8 }}>Status</th>
+                        <th style={{ padding:8 }}>Risco</th>
+                        <th style={{ padding:8, textAlign:'right' }}>Ações</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {mine.length===0 && <tr><td colSpan="5" style={{ padding:8, color:'#6c757d' }}>Nenhum registro encontrado</td></tr>}
+                      {mine.length===0 && <tr><td colSpan="8" style={{ padding:8, color:'#6c757d' }}>Nenhum registro encontrado</td></tr>}
                       {mine.map((d,i)=> (
                         <tr key={d.id} style={{ borderTop:'1px solid #e9ecef' }}>
                           <td style={{ padding:8 }}>{i+1}</td>
@@ -629,6 +879,29 @@
                           <td style={{ padding:8 }}>{d.category}</td>
                           <td style={{ padding:8 }}>{d.category==='fundos' ? `R$ ${d.amount.toFixed(2)}` : `${d.amount} ${d.unit||''}`}</td>
                           <td style={{ padding:8 }}>{d.status}</td>
+                          <td style={{ padding:8 }}>
+                            <span className={`risk-badge ${d.riskClass || 'risk-low'}`} title={`Score ${d.riskScore || 0}`}>
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 22h20L12 2z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                              {d.riskLevel || 'Baixo'}
+                            </span>
+                          </td>
+                          <td style={{ padding:8, textAlign:'right' }}>
+                            <div style={{ display:'inline-flex', gap:8, alignItems:'center' }}>
+                              <button className="btn btn-ghost btn-sm" type="button" onClick={()=>setSuccess(`Registro #${d.id} possui ${d.photos?.length||0} evidência(s).`)}>Ver status</button>
+                              {d.needsEvidence && (
+                                <label className="btn btn-sm" style={{ cursor:'pointer' }}>
+                                  Anexar Evidências
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={(e)=>{ const files = e.target.files; addEvidence(d.id, files); e.target.value=''; }}
+                                    style={{ display:'none' }}
+                                  />
+                                </label>
+                              )}
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -659,6 +932,12 @@
                       <div className="card" style={{ padding:12 }}><div style={{ color:'#0f5132', fontWeight:700 }}>Fundos (R$) aprovados</div><div style={{ fontSize:22, fontWeight:800 }}>{funds.toFixed(2)}</div></div>
                       <div className="card" style={{ padding:12 }}><div style={{ color:'#0f5132', fontWeight:700 }}>Brinquedos (un) aprovados</div><div style={{ fontSize:22, fontWeight:800 }}>{toys}</div></div>
                     </div>
+                    {mine.some(d=>d.needsEvidence) && (
+                      <div style={{ marginTop:16, padding:16 }} className="card">
+                        <div className="subtitle">Evidências Pendentes</div>
+                        <div className="muted" style={{ fontSize:13, marginTop:4 }}>Envie fotos extras para as doações destacadas acima. Isso ajuda a evitar fraudes e acelera a aprovação.</div>
+                      </div>
+                    )}
                   </div>
                 );
               })()}
@@ -673,10 +952,11 @@
         const [loading, setLoading] = useState(false);
         const [error, setError] = useState('');
         const [viewerPhotos, setViewerPhotos] = useState(null);
+        const [feedback, setFeedback] = useState('');
         const tbodyRef = React.useRef(null);
 
         const load = () => {
-          setLoading(true); setError('');
+          setLoading(true); setError(''); setFeedback('');
           try { setPending(listPending()); } catch (e) { setError('Erro ao carregar'); }
           finally { setLoading(false); }
         };
@@ -701,10 +981,16 @@
           return () => tbody.removeEventListener('click', onClick);
         }, [tbodyRef]);
 
-        const doApprove = (id) => { updateDonationStatus(id, 'Aprovada'); load(); };
+        const doApprove = (id) => { updateDonationStatus(id, 'Aprovada'); setFeedback('Doação aprovada com sucesso.'); load(); };
         const doReject = (id) => {
           const motivo = prompt('Motivo da rejeição (opcional):') || null;
-          updateDonationStatus(id, 'Rejeitada', motivo); load();
+          updateDonationStatus(id, 'Rejeitada', motivo); setFeedback('Doação rejeitada. Histórico atualizado.'); load();
+        };
+        const requestEvidence = (id) => {
+          const reason = prompt('Descreva o que precisa ser comprovado:') || 'Verificação adicional solicitada';
+          flagDonationForEvidence(id, 'Mentor/Admin', reason);
+          setFeedback('Evidências adicionais solicitadas. O participante foi notificado.');
+          load();
         };
         const openPhotos = (donation) => {
           const photos = donation?.photos || [];
@@ -716,6 +1002,7 @@
             <Card title="Aprovação de Doações" right={<button className="btn" onClick={load}>Atualizar</button>}>
               {loading && <span>Carregando…</span>}
               {error && <div style={{ color:'#dc3545' }}>{error}</div>}
+              {feedback && <div style={{ color:'#4df2c2', marginBottom:8 }}>{feedback}</div>}
               <div style={{ overflowX:'auto', marginTop:0 }}>
                 <table style={{ width:'100%', borderCollapse:'collapse' }}>
                   <thead>
@@ -726,12 +1013,14 @@
                       <th style={{ padding:8 }}>Categoria</th>
                       <th style={{ padding:8 }}>Valor</th>
                       <th style={{ padding:8 }}>Aluno</th>
+                      <th style={{ padding:8 }}>Risco</th>
+                      <th style={{ padding:8 }}>Evidências</th>
                       <th style={{ padding:8, textAlign:'right' }}>Ações</th>
                     </tr>
                   </thead>
                   <tbody ref={tbodyRef}>
                     {!loading && pending.length===0 && (
-                      <tr><td colSpan="5" style={{ padding:8, color:'#6c757d' }}>Nenhum registro encontrado</td></tr>
+                      <tr><td colSpan="9" style={{ padding:8, color:'#6c757d' }}>Nenhum registro encontrado</td></tr>
                     )}
                     {pending.map((p, i) => (
                       <tr key={p.id} data-id={p.id} style={{ borderTop:'1px solid #e9ecef' }}>
@@ -742,6 +1031,16 @@
                         <td style={{ padding:8 }}>{p.category==='fundos' ? `R$ ${p.amount.toFixed(2)}` : `${p.amount} ${p.unit||''}`}</td>
                         <td style={{ padding:8 }}>{p.user?.name || '-'}</td>
                         <td style={{ padding:8 }}>
+                          <span className={`risk-badge ${p.riskClass || 'risk-low'}`} title={`Score ${p.riskScore || 0}`}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 22h20L12 2z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            {p.riskLevel || 'Baixo'}
+                          </span>
+                        </td>
+                        <td style={{ padding:8 }}>
+                          <span className="chip">{p.photos?.length || 0} foto(s)</span>
+                          {p.needsEvidence && <span className="badge" style={{ marginLeft:8 }}>Evidência pendente</span>}
+                        </td>
+                        <td style={{ padding:8 }}>
                           <div style={{ display:'inline-flex', gap:8, alignItems:'center' }}>
                             {p.photos && p.photos.length > 0 && (
                               <button
@@ -750,6 +1049,12 @@
                               >
                                 Visualizar
                               </button>
+                            )}
+                            {p.needsEvidence && (
+                              <button className="btn btn-ghost btn-sm" onClick={()=>requestEvidence(p.id)}>Reforçar pedido</button>
+                            )}
+                            {!p.needsEvidence && (
+                              <button className="btn btn-ghost btn-sm" onClick={()=>requestEvidence(p.id)}>Solicitar evidência</button>
                             )}
                             <button className="btn btn-sm" onClick={()=>doApprove(p.id)}>Aprovar</button>
                             <button className="btn btn-danger btn-sm" onClick={()=>doReject(p.id)}>Rejeitar</button>
@@ -933,6 +1238,12 @@
         });
         const maxTrend = Math.max(1, ...approvalsByDay.map(p=>p.total));
 
+        // Risco agregado
+        const riskyDonations = donations.filter(d => (d.riskLevel === 'Alto') && d.status === 'Pendente');
+        const mediumRisk = donations.filter(d => (d.riskLevel === 'Médio') && d.status === 'Pendente');
+        const evidenceWaiting = donations.filter(d => d.needsEvidence).length;
+        const auditEvents = listAuditTrail(8);
+
         // Crescimento 7d por equipe
         const sevenAgo = Date.now() - 7*24*3600*1000;
         const approved7 = approved.filter(d => new Date(d.updatedAt || d.updated_at || d.createdAt || 0).getTime() >= sevenAgo);
@@ -1096,6 +1407,72 @@
               <div className="card reveal anim-pop col-4"><div className="subtitle">Pendentes</div><div style={{ display:'flex', alignItems:'baseline', gap:12 }}><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cPending} /></div>{agingPend>0 && <span className="badge">{agingPend} 3d+</span>}</div></div>
               <div className="card reveal anim-pop col-4"><div className="subtitle">Aprovadas</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cApproved} /></div></div>
               <div className="card reveal anim-pop col-4"><div className="subtitle">Rejeitadas</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cRejected} /></div></div>
+            </div>
+
+            {/* Cards de Risco/Auditoria */}
+            <div className="grid-auto" style={{ marginTop:16 }}>
+              <div className="card anim-fade reveal col-4">
+                <div className="subtitle">Risco Alto Pendentes</div>
+                <div style={{ fontSize:32, fontWeight:800, display:'flex', alignItems:'center', gap:12 }}>
+                  <AnimatedNumber value={riskyDonations.length} />
+                  {riskyDonations.length>0 && <span className="badge">Atenção imediata</span>}
+                </div>
+                <div className="muted" style={{ fontSize:13 }}>Doações aguardando aprovação com score alto</div>
+              </div>
+              <div className="card anim-fade reveal col-4">
+                <div className="subtitle">Risco Médio Pendentes</div>
+                <div style={{ fontSize:32, fontWeight:800 }}><AnimatedNumber value={mediumRisk.length} /></div>
+                <div className="muted" style={{ fontSize:13 }}>Monitore para evitar acúmulo de análise</div>
+              </div>
+              <div className="card anim-fade reveal col-4">
+                <div className="subtitle">Evidências Solicitadas</div>
+                <div style={{ fontSize:32, fontWeight:800 }}><AnimatedNumber value={evidenceWaiting} /></div>
+                <div className="muted" style={{ fontSize:13 }}>Participantes precisam anexar fotos extras</div>
+              </div>
+            </div>
+
+            <div className="card anim-fade reveal" style={{ marginTop:16 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                <div className="subtitle">Linha do tempo de Auditoria</div>
+                <button className="btn btn-ghost btn-sm" onClick={()=>{
+                  const csvEvents = listAuditTrail(100).map(ev => ({
+                    id: ev.id,
+                    doacao: ev.donationId,
+                    acao: ev.action,
+                    ator: ev.actor,
+                    horario: ev.timestamp,
+                    detalhes: JSON.stringify(ev.extra || {})
+                  }));
+                  const headers = Object.keys(csvEvents[0] || { id:'', doacao:'', acao:'', ator:'', horario:'', detalhes:'' });
+                  const csv = [headers.join(','), ...csvEvents.map(r => headers.map(h => `${String(r[h]).replace(/"/g,'""')}`).join(','))].join('\n');
+                  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url; a.download = `auditoria_${Date.now()}.csv`;
+                  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+                }}>Exportar auditoria</button>
+              </div>
+              {auditEvents.length === 0 ? (
+                <div className="muted">Nenhum evento registrado ainda.</div>
+              ) : (
+                <div className="audit-timeline">
+                  {auditEvents.map(ev => (
+                    <div key={ev.id} className="audit-timeline-item">
+                      <div className="audit-icon">⏵</div>
+                      <div>
+                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                          <strong>{ev.action}</strong>
+                          <span>{new Date(ev.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div className="muted" style={{ fontSize:12 }}>Doação #{ev.donationId} • {ev.actor}</div>
+                        {ev.extra && Object.keys(ev.extra).length > 0 && (
+                          <div style={{ marginTop:4, fontSize:12, color:'#f0fff8' }}>{Object.entries(ev.extra).map(([k,v])=>`${k}: ${typeof v==='object'?JSON.stringify(v):v}`).join(' • ')}</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Charts */}
