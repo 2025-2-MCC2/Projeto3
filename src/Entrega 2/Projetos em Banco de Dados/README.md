@@ -1,38 +1,22 @@
-A tabela usuario possui chave primária para controlar os logins e cadastros, evitando duplicidades. A tabela doacao tem chave primária para não cadastrar doações iguais e chave estrangeira ligando com a tabela usuario. A tabela item_doacao também tem chave primária para evitar itens duplicados e chave estrangeira conectando com a tabela doacao.
+O banco de dados do Portal de Doações foi expandido com duas novas tabelas essenciais: a tabela categoria_doacao organiza e classifica os tipos de doações em categorias como Roupas, Brinquedos, Alimentos e Financeiro, controlando quais estão ativas ou inativas no sistema; já a tabela historico_status registra todo o histórico de mudanças no ciclo de vida das doações, armazenando quem alterou o status, quando foi modificado e o motivo da alteração, garantindo total rastreabilidade e transparência no processo de aprovação e gestão das doações desde o início até a finalização.
 
-Relacionamentos:
+CREATE TABLE categoria_doacao (
+    id_categoria INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL, -- Ex: Dinheiro, Brinquedos, Alimentos
+    descricao TEXT,
+    ativo BOOLEAN DEFAULT TRUE
+);
 
-usuario -> doacao: Um usuário pode fazer várias doações, mas cada doação pertence a apenas um usuário (1,n)
+CREATE TABLE historico_status (
+    id_historico INT AUTO_INCREMENT PRIMARY KEY,
+    id_doacao INT NOT NULL,
+    status_anterior VARCHAR(50),
+    status_novo VARCHAR(50) NOT NULL,
+    alterado_por INT NOT NULL,
+    data_alteracao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    motivo TEXT,
+    FOREIGN KEY (id_doacao) REFERENCES doacao(id_doacao) ON DELETE CASCADE,
+    FOREIGN KEY (alterado_por) REFERENCES usuario(id_usuario)
+);
 
-doacao -> item_doacao: Uma doação pode ter vários itens, mas cada item pertence a apenas uma doação (1,n)
-
-Table usuario {
-  id_usuario int [pk, increment]
-  nome varchar
-  email varchar
-  senha varchar
-  telefone varchar
-  papel varchar // ADMIN, MENTOR ou ALUNO
-}
-
-Table doacao {
-  id_doacao int [pk, increment]
-  id_usuario int [ref: > usuario.id_usuario]
-  data_doacao datetime
-  forma_pagamento varchar
-  status varchar
-}
-
-Table item_doacao {
-  id_item int [pk, increment]
-  id_doacao int [ref: > doacao.id_doacao]
-  brinquedos_qtd int
-  alimentos_kg decimal(10,2)
-  arrecadacoes_valor decimal(10,2)
-  descricao varchar
-  estado varchar
-}
-
-Foram implementadas chaves estrangeiras conectando as tabelas (usuário > doacao > item_doacao)
-Também foi adicionado um sistema hierarquico para que os alunos façam doações que tenham itens
-Um controle de acesso foi colocado através de do campo papel (ADMIN, MENTOR, ALUNO) junto com uma rastreabilidade das doações completa, iniciando usuários até os itens que foram doados.'
+O sistema possui relacionamentos hierárquicos bem definidos. Na base está o usuário que pode realizar múltiplas doações (relacionamento 1:N). Cada doação pertence a uma categoria específica (relacionamento 1:1) e pode conter vários itens (relacionamento 1:N). Além disso, cada doação possui um histórico de status que registra todas as suas alterações ao longo do tempo (relacionamento 1:N), onde cada mudança de status é vinculada ao usuário que realizou a modificação.
