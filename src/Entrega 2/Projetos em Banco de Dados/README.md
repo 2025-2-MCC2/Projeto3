@@ -35,4 +35,4 @@ Table item_doacao {
 
 Foram implementadas chaves estrangeiras conectando as tabelas (usuário > doacao > item_doacao)
 Também foi adicionado um sistema hierarquico para que os alunos façam doações que tenham itens
-Um controle de acesso foi colocado através de do campo papel (ADMIN, MENTOR, ALUNO) junto com uma rastreabilidade das doações completa, iniciando usuários até os itens que foram doados.
+Um controle de acesso foi colocado através de do campo papel (ADMIN, MENTOR, ALUNO) junto com uma rastreabilidade das doações completa, iniciando usuários até os itens que foram doados.'
