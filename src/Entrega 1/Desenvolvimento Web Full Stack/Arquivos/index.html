@@ -455,10 +455,219 @@
       .text-center { text-align:center; }
       .row { display:flex; gap:12px; align-items:center; justify-content:space-between; }
       .help { font-size:12px; color:#6c757d; }
-      /* New animations and smooth interactions */
+      /* Animações e interações suaves */
       @keyframes slideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
       @keyframes popIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      @keyframes barRise { from { transform: scaleY(0); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+      @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+      @keyframes glow { 0% { box-shadow: 0 0 5px rgba(77, 242, 194, 0.4); } 50% { box-shadow: 0 0 20px rgba(77, 242, 194, 0.8); } 100% { box-shadow: 0 0 5px rgba(77, 242, 194, 0.4); } }
+      
       .anim-slide { animation: slideIn .5s ease both; }
+      .pulse { animation: pulse 1.5s infinite; }
+      .anim-fade { animation: fadeIn 0.6s ease forwards; }
+      .anim-pop { animation: popIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+      
+      /* Estilos para os cartões de estatísticas */
+      .stat-card {
+        position: relative;
+        background: var(--card-bg);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        height: 100%;
+        border-left: 4px solid #4df2c2;
+      }
+      
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+      
+      .stat-card .stat-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        font-size: 20px;
+        transition: all 0.3s ease;
+      }
+      
+      .stat-card:hover .stat-icon {
+        transform: scale(1.1) rotate(5deg);
+      }
+      
+      .stat-card .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 8px 0 4px;
+        transition: color 0.3s ease;
+      }
+      
+      .stat-card .stat-description {
+        font-size: 14px;
+        color: var(--text-muted);
+        transition: color 0.3s ease;
+      }
+      
+      .stat-card .stat-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 12px;
+        background: rgba(77, 242, 194, 0.2);
+        color: #4df2c2;
+        transition: all 0.3s ease;
+      }
+      
+      .stat-card:hover .stat-badge {
+        transform: scale(1.05);
+        opacity: 0.9;
+      }
+      
+      .stat-card .pulse-dot {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ff3b30;
+        box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
+      }
+      
+      .stat-card .pulse-dot.active {
+        animation: pulse 1.5s infinite;
+      }
+      
+      /* Estilos para cartões de estatísticas */
+      .stat-card {
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        padding: 20px;
+        background: var(--card-bg);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid var(--green-neon);
+        height: 100%;
+      }
+      
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        background: rgba(77, 242, 194, 0.05);
+      }
+      
+      .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: rgba(77, 242, 194, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 16px;
+        transition: all 0.3s ease;
+      }
+      
+      .stat-card:hover .stat-icon {
+        transform: rotate(10deg) scale(1.1);
+        background: rgba(77, 242, 194, 0.2);
+      }
+      
+      .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 8px 0 4px;
+        transition: all 0.3s ease;
+      }
+      
+      .stat-card:hover .stat-value {
+        color: var(--green-neon);
+      }
+      
+      .stat-label {
+        color: var(--text-muted);
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+      
+      /* Estilos para gráficos */
+      .chart-container {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+      }
+      
+      .chart-container:hover {
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      }
+      
+      .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      
+      .chart-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+      }
+      
+      /* Tooltip personalizado */
+      .tooltip {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+        z-index: 100;
+        max-width: 200px;
+        text-align: center;
+      }
+      
+      /* Spinner de carregamento */
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(77, 242, 194, 0.2);
+        border-top: 4px solid var(--green-neon);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+      
+      /* Efeito de hover nas barras do gráfico */
+      .bar {
+        position: relative;
+        transition: all 0.3s ease;
+        animation: barRise 0.6s ease-out forwards;
+        transform-origin: bottom;
+      }
+      
+      .bar:hover {
+        opacity: 0.9 !important;
+        transform: translateY(-2px) !important;
+      }
       .anim-pop { animation: popIn .35s ease both; }
       .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
       .reveal.in-view { opacity: 1; transform: none; }
@@ -2100,24 +2309,121 @@
       }
 
       // === Admin Dashboard (KPIs + Charts + Ranking) ===
-      function AnimatedNumber({ value, duration = 800, format }) {
-        const [display, setDisplay] = useState(0);
+      function AnimatedNumber({ value, duration=600, format=(v)=>v, className='' }) {
+        const [displayValue, setDisplayValue] = useState(0);
+        const [isVisible, setIsVisible] = useState(false);
+        const [isHovered, setIsHovered] = useState(false);
+        const ref = useRef();
+      
         useEffect(() => {
-          if (typeof value !== 'number') { setDisplay(0); return; }
-          let raf; const start = performance.now();
-          const from = 0; const to = value;
-          const easeOut = (t) => 1 - Math.pow(1 - t, 3);
-          const step = (now) => {
-            const p = Math.min(1, (now - start) / duration);
-            const eased = easeOut(p);
-            setDisplay(from + (to - from) * eased);
-            if (p < 1) raf = requestAnimationFrame(step);
+          const observer = new IntersectionObserver(
+            ([entry]) => {
+              if (entry.isIntersecting) {
+                setIsVisible(true);
+                observer.disconnect();
+              }
+            },
+            { threshold: 0.1 }
+          );
+          if (ref.current) observer.observe(ref.current);
+          return () => observer.disconnect();
+        }, []);
+      
+        useEffect(() => {
+          if (!isVisible) return;
+          
+          let start = 0;
+          const end = typeof value === 'number' ? value : 0;
+          const startTime = performance.now();
+          
+          const animate = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            const easeOutQuad = t => t * (2 - t);
+            const currentValue = start + (end - start) * easeOutQuad(progress);
+            
+            setDisplayValue(currentValue);
+            
+            if (progress < 1) {
+              requestAnimationFrame(animate);
+            } else {
+              setDisplayValue(end); // Garante que termine exatamente no valor final
+            }
           };
-          raf = requestAnimationFrame(step);
-          return () => cancelAnimationFrame(raf);
-        }, [value, duration]);
-        const text = format ? format(display) : Math.round(display).toString();
-        return <span>{text}</span>;
+          
+          requestAnimationFrame(animate);
+          
+          return () => cancelAnimationFrame(animate);
+        }, [value, duration, isVisible]);
+      
+        return (
+          <span 
+            ref={ref} 
+            className={className}
+            style={{
+              display: 'inline-block',
+              transition: 'transform 0.2s ease, color 0.3s ease',
+              transform: isHovered ? 'scale(1.1)' : 'scale(1)',
+              color: isHovered ? '#4df2c2' : 'inherit'
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            {format ? format(display) : display.toLocaleString()}
+          </span>
+        );
+      }
+      
+      // Componente de cartão de estatísticas
+      function StatCard({ title, value, icon, color = '#4df2c2', format, description }) {
+        const [isHovered, setIsHovered] = useState(false);
+        
+        return (
+          <div 
+            className="stat-card"
+            style={{
+              borderLeft: `4px solid ${color}`,
+              transform: isHovered ? 'translateY(-5px)' : 'none',
+              background: isHovered ? 'rgba(77, 242, 194, 0.03)' : 'var(--card-bg)'
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
+              <div 
+                className="stat-icon"
+                style={{
+                  background: isHovered ? `${color}20` : `${color}10`,
+                  transform: isHovered ? 'rotate(10deg)' : 'none'
+                }}
+              >
+                <i className={icon} style={{ color, fontSize: '20px' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div className="stat-label">{title}</div>
+                <div className="stat-value">
+                  <AnimatedNumber 
+                    value={value} 
+                    format={format} 
+                    className={isHovered ? 'pulse' : ''}
+                  />
+                </div>
+              </div>
+            </div>
+            {description && (
+              <div style={{
+                fontSize: '12px',
+                color: 'var(--text-muted)',
+                marginTop: '8px',
+                paddingTop: '8px',
+                borderTop: '1px dashed rgba(77, 242, 194, 0.2)'
+              }}>
+                {description}
+              </div>
+            )}
+          </div>
+        );
       }
 
       function useRevealOnScroll() {
@@ -2401,47 +2707,163 @@
             </div>
 
             {/* KPIs de Leaders + avançados */}
-            <div className="grid-auto anim-fade">
-              <div className="card reveal anim-pop col-3"><div className="subtitle">Total de Leaders</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={totalLeaders} /></div><div className="muted" style={{ fontSize:12 }}>Equipe cadastrada</div></div>
-              <div className="card reveal anim-pop col-3"><div className="subtitle">Alunos</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={totalAlunos} /></div><div className="muted" style={{ fontSize:12 }}>Contas de aluno</div></div>
-              <div className="card reveal anim-pop col-3"><div className="subtitle">Mentores</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={totalMentores} /></div><div className="muted" style={{ fontSize:12 }}>Contas de mentor</div></div>
-              <div className="card reveal anim-pop col-3"><div className="subtitle">Taxa de Aprovação</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={approvalRate*100} format={(v)=>`${v.toFixed(0)}%`} /></div><div className="muted" style={{ fontSize:12 }}>Aprovadas / (Aprovadas + Rejeitadas)</div></div>
+            <div className="grid-auto" style={{ marginBottom: '16px', gap: '16px' }}>
+              <div className="col-3">
+                <StatCard 
+                  title="Total de Leaders" 
+                  value={totalLeaders}
+                  icon="fas fa-users"
+                  description="Equipe cadastrada"
+                  color="#4d9df2"
+                />
+              </div>
+              <div className="col-3">
+                <StatCard 
+                  title="Alunos" 
+                  value={totalAlunos}
+                  icon="fas fa-user-graduate"
+                  description="Contas de aluno"
+                  color="#9d4dff"
+                />
+              </div>
+              <div className="col-3">
+                <StatCard 
+                  title="Mentores" 
+                  value={totalMentores}
+                  icon="fas fa-chalkboard-teacher"
+                  description="Contas de mentor"
+                  color="#4dffb8"
+                />
+              </div>
+              <div className="col-3">
+                <StatCard 
+                  title="Taxa de Aprovação" 
+                  value={approvalRate*100}
+                  format={(v) => `${v.toFixed(0)}%`}
+                  icon="fas fa-check-circle"
+                  description="Aprovadas / Total"
+                  color="#4df24d"
+                />
+              </div>
             </div>
 
             {/* KPIs de Doações + operacionais */}
-            <div className="grid-auto anim-fade" style={{ marginTop:16 }}>
-              <div className="card reveal anim-pop col-3"><div className="subtitle">Alimentos (kg)</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={dFood} duration={900} format={(v)=>v.toFixed(2)} /></div></div>
-              <div className="card reveal anim-pop col-3"><div className="subtitle">Fundos (R$)</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={dFunds} duration={900} format={(v)=>v.toFixed(2)} /></div></div>
-              <div className="card reveal anim-pop col-3"><div className="subtitle">Brinquedos (un)</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={dToys} /></div></div>
-              <div className="card reveal anim-pop col-3"><div className="subtitle">Tempo Médio de Aprovação</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={avgApprovalHours} format={(v)=>`${v.toFixed(1)} h`} /></div><div className="muted" style={{ fontSize:12 }}>Intervalo entre registro e aprovação</div></div>
+            <div className="grid-auto" style={{ marginBottom: '16px', gap: '16px' }}>
+              <div className="col-3">
+                <StatCard 
+                  title="Alimentos" 
+                  value={dFood}
+                  format={(v) => v.toFixed(2)}
+                  icon="fas fa-apple-alt"
+                  description="Total em kg"
+                  color="#ff9d4d"
+                  duration={900}
+                  suffix=" kg"
+                />
+              </div>
+              <div className="col-3">
+                <StatCard 
+                  title="Fundos" 
+                  value={dFunds}
+                  format={(v) => v.toFixed(2)}
+                  icon="fas fa-coins"
+                  description="Total arrecadado"
+                  color="#ffd54d"
+                  duration={900}
+                  prefix="R$ "
+                />
+              </div>
+              <div className="col-3">
+                <StatCard 
+                  title="Brinquedos" 
+                  value={dToys}
+                  icon="fas fa-gamepad"
+                  description="Unidades doadas"
+                  color="#ff4d9d"
+                  suffix=" un"
+                />
+              </div>
+              <div className="col-3">
+                <StatCard 
+                  title="Tempo de Aprovação" 
+                  value={avgApprovalHours}
+                  format={(v) => v.toFixed(1)}
+                  icon="fas fa-clock"
+                  description="Média de horas"
+                  color="#4db8ff"
+                  suffix=" h"
+                />
+              </div>
             </div>
 
             {/* Resumo de Status */}
-            <div className="grid-auto anim-fade" style={{ marginTop:16 }}>
-              <div className="card reveal anim-pop col-4"><div className="subtitle">Pendentes</div><div style={{ display:'flex', alignItems:'baseline', gap:12 }}><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cPending} /></div>{agingPend>0 && <span className="badge">{agingPend} 3d+</span>}</div></div>
-              <div className="card reveal anim-pop col-4"><div className="subtitle">Aprovadas</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cApproved} /></div></div>
-              <div className="card reveal anim-pop col-4"><div className="subtitle">Rejeitadas</div><div style={{ fontSize:28, fontWeight:800 }}><AnimatedNumber value={cRejected} /></div></div>
+            <div className="grid-auto" style={{ marginBottom: '16px', gap: '16px' }}>
+              <div className="col-4">
+                <StatCard 
+                  title="Pendentes"
+                  value={cPending}
+                  icon="fas fa-clock"
+                  description={agingPend > 0 ? `${agingPend} aguardando +3d` : 'Aguardando revisão'}
+                  color="#ff9d4d"
+                  badge={agingPend > 0 ? `${agingPend} 3d+` : null}
+                  badgeColor="#ff3b30"
+                />
+              </div>
+              <div className="col-4">
+                <StatCard 
+                  title="Aprovadas"
+                  value={cApproved}
+                  icon="fas fa-check-circle"
+                  description="Doações validadas"
+                  color="#4df24d"
+                />
+              </div>
+              <div className="col-4">
+                <StatCard 
+                  title="Rejeitadas"
+                  value={cRejected}
+                  icon="fas fa-times-circle"
+                  description="Não aprovadas"
+                  color="#ff4d4d"
+                />
+              </div>
             </div>
 
             {/* Cards de Risco/Auditoria */}
-            <div className="grid-auto" style={{ marginTop:16 }}>
-              <div className="card anim-fade reveal col-4">
-                <div className="subtitle">Risco Alto Pendentes</div>
-                <div style={{ fontSize:32, fontWeight:800, display:'flex', alignItems:'center', gap:12 }}>
-                  <AnimatedNumber value={riskyDonations.length} />
-                  {riskyDonations.length>0 && <span className="badge">Atenção imediata</span>}
-                </div>
-                <div className="muted" style={{ fontSize:13 }}>Doações aguardando aprovação com score alto</div>
+            <div className="grid-auto" style={{ marginBottom: '16px', gap: '16px' }}>
+              <div className="col-4">
+                <StatCard 
+                  title="Risco Alto Pendentes"
+                  value={riskyDonations.length}
+                  icon="fas fa-exclamation-triangle"
+                  description="Doações com score alto"
+                  color="#ff3b30"
+                  badge={riskyDonations.length > 0 ? "Atenção imediata" : null}
+                  badgeColor="#ff3b30"
+                  pulse={riskyDonations.length > 0}
+                />
               </div>
-              <div className="card anim-fade reveal col-4">
-                <div className="subtitle">Risco Médio Pendentes</div>
-                <div style={{ fontSize:32, fontWeight:800 }}><AnimatedNumber value={mediumRisk.length} /></div>
-                <div className="muted" style={{ fontSize:13 }}>Monitore para evitar acúmulo de análise</div>
+              <div className="col-4">
+                <StatCard 
+                  title="Risco Médio"
+                  value={mediumRisk.length}
+                  icon="fas fa-exclamation-circle"
+                  description="Revisão recomendada"
+                  color="#ff9500"
+                  badge={mediumRisk.length > 0 ? `${mediumRisk.length} pendentes` : null}
+                  badgeColor="#ff9500"
+                />
               </div>
-              <div className="card anim-fade reveal col-4">
-                <div className="subtitle">Evidências Solicitadas</div>
-                <div style={{ fontSize:32, fontWeight:800 }}><AnimatedNumber value={evidenceWaiting} /></div>
-                <div className="muted" style={{ fontSize:13 }}>Participantes precisam anexar fotos extras</div>
+              <div className="col-4">
+                <StatCard 
+                  title="Evidências Pendentes"
+                  value={evidenceWaiting}
+                  icon="fas fa-paperclip"
+                  description="Aguardando documentos"
+                  color="#5ac8fa"
+                  badge={evidenceWaiting > 0 ? `${evidenceWaiting} itens` : null}
+                  badgeColor="#5ac8fa"
+                />
               </div>
             </div>
 
