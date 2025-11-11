@@ -28,12 +28,7 @@
 |README.md
 
 
-## 📋 Licença/License
-
-Utilize o link [https://chooser-beta.creativecommons.org/](https://chooser-beta.creativecommons.org/) para fazer uma licença CC BY 4.0.
-
-
-Modelagem Banco de Dados
+## Modelagem Banco de Dados
 
  A modelagem completa do banco de dados está disponível neste arquivo:  [Entrega 1](./src/Entrega%201/Projetos%20em%20Banco%20de%20Dados/README.md)
 
