@@ -7,9 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gestão de Lideranças</title>
     <!-- React 18 UMD + Babel Standalone (dev) -->
-    <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+    <script>window.ENV = { NODE_ENV: 'development' };</script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- Runtime ENV (copie env.js.example para env.js e ajuste API_URL) -->
     <script src="./env.js"></script>
     <style>
@@ -112,26 +113,31 @@
         background: linear-gradient(125deg, var(--green) 0%, var(--green-neon) 100%);
         color:#05130c;
         border:none;
-        padding:0.9rem 1.6rem;
-        border-radius:999px;
+        padding: 1rem 1.8rem;
+        border-radius: var(--radius-lg);
+        font-weight: 600;
+        font-size: 1rem;
         cursor:pointer;
-        font-weight:600;
-        letter-spacing:0.05em;
-        box-shadow: 0 16px 38px rgba(77, 242, 194, 0.24);
         display:inline-flex;
         align-items:center;
         justify-content:center;
-        gap:0.6rem;
+        gap:8px;
+        box-shadow: none;
+        font-family: inherit;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        font-size: 0.95rem;
         text-decoration:none;
         transition: var(--transition);
       }
       .btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 22px 52px rgba(77, 242, 194, 0.32);
+        box-shadow: none;
+        opacity: 0.9;
       }
       .btn:active {
         transform: scale(0.97);
-        box-shadow: 0 10px 26px rgba(77, 242, 194, 0.2);
+        box-shadow: none;
       }
       /* Modern dashboards: utilities */
       .grid-auto { display:grid; grid-template-columns: repeat(12, minmax(0,1fr)); gap: var(--space-md); }
@@ -279,6 +285,7 @@
         gap:24px;
         align-items:center;
         justify-content:center;
+        margin-bottom: 20px;
       }
       .login-logos img {
         height: 78px;
@@ -289,22 +296,30 @@
         background: transparent;
         border: none;
         box-shadow: none;
+        display: block;
       }
       .login-title {
-        text-align:center;
+        text-align: center;
         margin-bottom: 0;
-        font-size: 2.6rem;
+        font-size: 1.3rem;
         font-weight: 700;
         color: #f4fff8;
-        letter-spacing: -0.02em;
-        max-width: 440px;
-        line-height: 1.18;
+        letter-spacing: -0.04em;
+        white-space: nowrap;
+        max-width: 100%;
+        line-height: 1.2;
+        padding: 0 5px;
+        overflow: visible;
       }
       .login-subtitle {
-        font-size: 1rem;
-        letter-spacing: 0.1em;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
         color: rgba(233, 254, 246, 0.7);
         text-transform: uppercase;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .login-form {
         display:grid;
@@ -345,7 +360,7 @@
         border:1px solid rgba(77, 242, 194, 0.28);
         background: rgba(4, 18, 12, 0.65);
         color: var(--green-neon);
-        box-shadow: 0 18px 40px rgba(77, 242, 194, 0.16);
+        box-shadow: none;
       }
       .login-switch .btn:hover {
         background: rgba(77, 242, 194, 0.18);
@@ -365,7 +380,7 @@
       .btn-danger {
         background: linear-gradient(135deg, #f15f79 0%, #b24592 100%);
         color:#fff;
-        box-shadow: 0 12px 28px rgba(188, 69, 146, 0.35);
+        box-shadow: none;
       }
       .input {
         padding:0.95rem 1.2rem;
@@ -708,8 +723,8 @@
         .login-header { gap:16px; margin-bottom:24px; }
         .login-logos { gap:18px; }
         .login-logos img { height:64px; width:64px; }
-        .login-title { font-size: 26px; }
-        .login-subtitle { font-size: 14px; }
+        .login-title { font-size: 18px; }
+        .login-subtitle { font-size: 13px; }
         .login-form { gap:14px; }
         .login-form .input { padding: 15px 18px; }
         .login-actions { gap:12px; }
@@ -736,8 +751,8 @@
         .login-card { padding: 30px 22px; }
         .login-logos { gap:14px; }
         .login-logos img { height:58px; width:58px; }
-        .login-title { font-size: 22px; }
-        .login-subtitle { font-size: 13px; letter-spacing: 0.5px; }
+        .login-title { font-size: 14px; }
+        .login-subtitle { font-size: 12px; letter-spacing: 0.3px; }
         .login-form .input { padding: 14px 16px; }
         .btn { width: 100%; }
       }
@@ -746,13 +761,231 @@
   <body>
     <div id="root"></div>
     <script type="text/babel">
-      const { useState, useEffect } = React;
+      const { useState, useEffect, useRef } = React;
+      
+      // Sistema de roteamento simples e funcional
+      const Router = {
+        currentRoute: window.location.hash.slice(1) || '/login',
+        listeners: [],
+        
+        navigate(path) {
+          window.location.hash = path;
+          this.currentRoute = path;
+          this.notifyListeners();
+        },
+        
+        listen(callback) {
+          this.listeners.push(callback);
+          return () => {
+            this.listeners = this.listeners.filter(l => l !== callback);
+          };
+        },
+        
+        notifyListeners() {
+          this.listeners.forEach(callback => callback(this.currentRoute));
+        }
+      };
+      
+      // Hook para usar o roteamento
+      function useRouter() {
+        const [route, setRoute] = useState(Router.currentRoute);
+        
+        useEffect(() => {
+          const unlisten = Router.listen(setRoute);
+          
+          const handleHashChange = () => {
+            const newRoute = window.location.hash.slice(1) || '/login';
+            Router.currentRoute = newRoute;
+            setRoute(newRoute);
+          };
+          
+          window.addEventListener('hashchange', handleHashChange);
+          
+          return () => {
+            unlisten();
+            window.removeEventListener('hashchange', handleHashChange);
+          };
+        }, []);
+        
+        return { route, navigate: Router.navigate.bind(Router) };
+      }
+
+      // Serviço de API com JWT
+      class ApiService {
+        constructor() {
+          this.baseURL = (window.__ENV && window.__ENV.API_URL) || 'http://localhost:3001';
+        }
+
+        getAuthHeaders() {
+          const token = localStorage.getItem('auth_token');
+          return {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          };
+        }
+
+        async request(endpoint, options = {}) {
+          const url = `${this.baseURL}${endpoint}`;
+          const config = {
+            headers: this.getAuthHeaders(),
+            ...options
+          };
+
+          try {
+            const response = await fetch(url, config);
+            const data = await response.json();
+
+            if (!response.ok) {
+              throw new Error(data.message || 'Erro na requisição');
+            }
+
+            return data;
+          } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+          }
+        }
+
+        // Auth
+        async login(email, senha) {
+          return this.request('/api/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ email, senha })
+          });
+        }
+
+        async register(userData) {
+          return this.request('/api/auth/register', {
+            method: 'POST',
+            body: JSON.stringify(userData)
+          });
+        }
+
+        // Grupos
+        async getGrupos() {
+          return this.request('/api/grupos/publico');
+        }
+
+        // Doações
+        async getDoacoes(filters = {}) {
+          const params = new URLSearchParams(filters);
+          return this.request(`/api/doacoes?${params}`);
+        }
+
+        async createDoacao(doacaoData) {
+          return this.request('/api/doacoes', {
+            method: 'POST',
+            body: JSON.stringify(doacaoData)
+          });
+        }
+
+        async updateDoacao(id, doacaoData) {
+          return this.request(`/api/doacoes/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(doacaoData)
+          });
+        }
+
+        async aprovarDoacao(id, observacoes = '') {
+          return this.request(`/api/doacoes/${id}/aprovar`, {
+            method: 'PUT',
+            body: JSON.stringify({ observacoes })
+          });
+        }
+
+        async rejeitarDoacao(id, motivo) {
+          return this.request(`/api/doacoes/${id}/rejeitar`, {
+            method: 'PUT',
+            body: JSON.stringify({ motivo })
+          });
+        }
+
+        // Upload
+        async uploadFiles(files) {
+          const formData = new FormData();
+          files.forEach(file => {
+            formData.append('files', file);
+          });
+
+          const token = localStorage.getItem('auth_token');
+          return fetch(`${this.baseURL}/api/upload/donation-files`, {
+            method: 'POST',
+            headers: {
+              ...(token && { 'Authorization': `Bearer ${token}` })
+            },
+            body: formData
+          }).then(response => response.json());
+        }
+      }
+
+      // Instância global da API
+      const api = new ApiService();
+
+      // Componente para proteger rotas autenticadas
+      function ProtectedRoute({ children, user, requiredRole = null }) {
+        const { navigate } = useRouter();
+        
+        useEffect(() => {
+          if (!user) {
+            navigate('/login');
+            return;
+          }
+          
+          if (requiredRole && user.role !== requiredRole) {
+            navigate('/dashboard');
+            return;
+          }
+        }, [user, requiredRole, navigate]);
+        
+        if (!user) return null;
+        if (requiredRole && user.role !== requiredRole) return null;
+        
+        return children;
+      }
+
+      // Hook para gerenciar autenticação
+      function useAuth() {
+        const [user, setUser] = useState(null);
+        const [loading, setLoading] = useState(true);
+        const { navigate } = useRouter();
+        
+        useEffect(() => {
+          // Verificar se há usuário salvo no localStorage
+          const savedUser = lsGet(LS_KEYS.USER);
+          const token = localStorage.getItem('auth_token');
+          
+          if (savedUser && token) {
+            setUser(savedUser);
+          }
+          setLoading(false);
+        }, []);
+        
+        const login = (userData) => {
+          setUser(userData);
+          lsSet(LS_KEYS.USER, userData);
+          navigate('/dashboard');
+        };
+        
+        const logout = () => {
+          setUser(null);
+          lsRemove(LS_KEYS.USER);
+          localStorage.removeItem('auth_token');
+          navigate('/login');
+        };
+        
+        return { user, login, logout, loading };
+      }
 
       function Header({ title, user, onLogout }) {
+        const { navigate } = useRouter();
+        
         return (
           <header>
-            <span>{title}</span>
+            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>{title}</span>
             <div className="header-actions">
+              {user && user.role === 'admin' && (
+                <button className="btn btn-ghost" onClick={() => navigate('/admin')}>Admin</button>
+              )}
               {user && <span style={{opacity:.95}}>{(user.role || 'USUÁRIO').toUpperCase()} - {user.name || 'Sessão'}</span>}
               {user && <button className="btn" onClick={onLogout}>Sair</button>}
             </div>
@@ -1344,15 +1577,22 @@
       function pushAuditEvents(events=[]) {
         if (!events.length) return;
         if (events.length === 1 && events[0] == null) return;
-        const list = lsGet(LS_KEYS.AUDIT);
+        const list = lsGet(LS_KEYS.AUDIT, []);
         events.filter(Boolean).forEach(ev => list.unshift(ev));
         if (list.length > 200) list.splice(200);
         lsSet(LS_KEYS.AUDIT, list);
       }
 
       function listAuditTrail(limit=50) {
-        return lsGet(LS_KEYS.AUDIT).slice(0, limit);
+        try {
+          const trail = lsGet(LS_KEYS.AUDIT, []);
+          return trail.slice(0, limit);
+        } catch (error) {
+          console.error('Erro ao carregar histórico de auditoria:', error);
+          return [];
+        }
       }
+
 
       function computeRiskScore({ donation, userHistory=[] }) {
         let score = 0;
@@ -1413,12 +1653,12 @@
       }
 
       function syncDonationCaches() {
-        const normalized = normalizeDonationList(lsGet(LS_KEYS.DONATIONS));
+        const normalized = normalizeDonationList(lsGet(LS_KEYS.DONATIONS, []));
         lsSet(LS_KEYS.DONATIONS, normalized);
         const byId = Object.fromEntries(normalized.map(d => [d.id, d]));
-        const pendingRaw = lsGet(LS_KEYS.PENDING).map(d => ({ ...byId[d.id], ...d }));
+        const pendingRaw = lsGet(LS_KEYS.PENDING, []).map(d => ({ ...byId[d.id], ...d }));
         lsSet(LS_KEYS.PENDING, pendingRaw);
-        const recentRaw = lsGet(LS_KEYS.RECENT).map(d => ({ ...byId[d.id], ...d }));
+        const recentRaw = lsGet(LS_KEYS.RECENT, []).map(d => ({ ...byId[d.id], ...d }));
         lsSet(LS_KEYS.RECENT, recentRaw);
         return {
           normalized,
@@ -1434,7 +1674,7 @@
             throw new Error('Dados incompletos para criar a doação');
           }
 
-          const all = lsGet(LS_KEYS.DONATIONS);
+          const all = lsGet(LS_KEYS.DONATIONS, []);
           const userDonations = all.filter(d => d.user?.name === user.name);
           
           // Verifica padrões suspeitos
@@ -1508,7 +1748,7 @@
           
           // Adiciona à lista de pendentes se não for de alto risco
           if (donation.riskLevel !== 'Alto') {
-            const pend = lsGet(LS_KEYS.PENDING);
+            const pend = lsGet(LS_KEYS.PENDING, []);
             pend.push(donation);
             lsSet(LS_KEYS.PENDING, pend);
           }
@@ -1541,7 +1781,8 @@
       function listAllDonations() { return syncDonationCaches().normalized; }
       function listUserDonations(user) { const all = listAllDonations(); return all.filter(d => d.user?.name === user.name); }
       function updateDonationStatus(id, status, motivo=null) {
-        const all = lsGet(LS_KEYS.DONATIONS); const idx = all.findIndex(d=>d.id===id);
+        const all = lsGet(LS_KEYS.DONATIONS, []);
+        const idx = all.findIndex(d=>d.id===id);
         if (idx>=0) {
           all[idx].status = status; all[idx].motivo = motivo; all[idx].updatedAt = new Date().toISOString();
           if (status === 'Aprovada') {
@@ -1551,9 +1792,9 @@
             all[idx].riskClass = 'risk-low';
           }
           lsSet(LS_KEYS.DONATIONS, all);
-          const pend = lsGet(LS_KEYS.PENDING).filter(d=>d.id!==id); lsSet(LS_KEYS.PENDING, pend);
+          const pend = lsGet(LS_KEYS.PENDING, []).filter(d=>d.id!==id); lsSet(LS_KEYS.PENDING, pend);
           if (status === 'Aprovada') {
-            const rec = lsGet(LS_KEYS.RECENT); rec.unshift(all[idx]); if (rec.length>50) rec.splice(50); lsSet(LS_KEYS.RECENT, rec);
+            const rec = lsGet(LS_KEYS.RECENT, []); rec.unshift(all[idx]); if (rec.length>50) rec.splice(50); lsSet(LS_KEYS.RECENT, rec);
           }
           pushAuditEvents([buildAuditEvent(all[idx], status === 'Aprovada' ? 'Aprovada' : 'Rejeitada', 'Mentor/Admin', { motivo })]);
           const { normalized } = syncDonationCaches();
@@ -1620,7 +1861,6 @@
         const [error, setError] = useState('');
         const [success, setSuccess] = useState('');
         const [mine, setMine] = useState([]);
-        const [teams, setTeams] = useState([]);
         const [uploading, setUploading] = useState(false);
         const [validationResults, setValidationResults] = useState(null);
 
@@ -1642,59 +1882,45 @@
           try {
             const files = Array.from(e.target.files || []).slice(0, 6);
             
-            // Validação de tipos e tamanhos
-            for (const file of files) {
-              if (!IMAGE_VALIDATION.ALLOWED_TYPES.includes(file.type)) {
-                throw new Error(`Tipo de arquivo não suportado: ${file.name}. Use: ${IMAGE_VALIDATION.ALLOWED_TYPES.join(', ')}`);
-              }
-              if (file.size > IMAGE_VALIDATION.MAX_SIZE_MB * 1024 * 1024) {
-                throw new Error(`Arquivo muito grande: ${file.name}. Tamanho máximo: ${IMAGE_VALIDATION.MAX_SIZE_MB}MB`);
-              }
-            }
+            if (files.length === 0) return;
             
-            // Converte para DataURLs
-            const dataUrls = await Promise.all(
-              files.map(file => 
-                new Promise((resolve) => {
-                  const reader = new FileReader();
-                  reader.onload = (e) => resolve(e.target.result);
-                  reader.readAsDataURL(file);
-                })
-              )
-            );
-            
-            setForm(f => ({ 
-              ...f, 
-              photos: [...f.photos, ...dataUrls].slice(0, 6),
-              previews: [...f.previews, ...dataUrls].slice(0, 6)
-            }));
-            
-            // Limpa mensagens de erro anteriores
+            setUploading(true);
             setError('');
             
+            // Upload real via API
+            const uploadResult = await api.uploadFiles(files);
+            
+            if (uploadResult.success) {
+              const uploadedFiles = uploadResult.data.files;
+              
+              setForm(f => ({ 
+                ...f, 
+                photos: [...f.photos, ...uploadedFiles].slice(0, 6),
+                previews: [...f.previews, ...uploadedFiles.map(file => file.url)].slice(0, 6)
+              }));
+              
+              console.log('✅ Upload realizado com sucesso:', uploadedFiles);
+            } else {
+              throw new Error(uploadResult.message || 'Erro no upload');
+            }
+            
           } catch (err) {
-            console.error('Erro ao processar imagens:', err);
-            setError(err.message);
-            e.target.value = ''; // Permite novo upload do mesmo arquivo
+            console.error('Erro ao fazer upload:', err);
+            setError(err.message || 'Erro ao fazer upload dos arquivos');
+            e.target.value = '';
+          } finally {
+            setUploading(false);
           }
         };
 
         const loadMine = () => setMine(listUserDonations(user));
         useEffect(()=>{ loadMine(); }, [user?.name]);
-        // Carrega equipes existentes da API para ajudar o aluno a selecionar
-        useEffect(()=>{
-          const BASE_URL = (window.__ENV && window.__ENV.API_URL) || 'http://localhost:3001';
-          (async ()=>{
-            try {
-              const res = await fetch(`${BASE_URL}/api/leaders`);
-              const json = await res.json();
-              if (res.ok) {
-                const uniques = Array.from(new Set((json.data||[]).map(l=>l.team).filter(Boolean)));
-                setTeams(uniques);
-              }
-            } catch {}
-          })();
-        }, []);
+        // Define a equipe do usuário automaticamente
+        useEffect(() => {
+          if (user && user.team) {
+            setForm(f => ({ ...f, team: user.team }));
+          }
+        }, [user]);
 
         const submit = async (e) => {
           e.preventDefault();
@@ -1704,8 +1930,17 @@
           
           try {
             // Validações básicas
-            if (!form.description || !form.amount || !form.team) {
-              throw new Error('Preencha todos os campos (incluindo a Equipe)');
+            if (!form.description || !form.amount) {
+              throw new Error('Preencha todos os campos obrigatórios');
+            }
+            
+            // Garantir que a equipe está definida
+            if (!form.team && user?.team) {
+              setForm(f => ({ ...f, team: user.team }));
+            }
+            
+            if (!form.team) {
+              throw new Error('Usuário não possui equipe definida. Contate o administrador.');
             }
             
             // Verifica se há pelo menos uma foto (imagem do item) e um comprovante
@@ -1833,19 +2068,14 @@
             
             // Se não houver alertas, cria a doação diretamente
             setUploading(true);
-            const donation = await createDonation({
-              description: form.description,
-              amount,
-              category: form.category,
-              unit,
-              team: form.team,
-              user: { 
-                id: user.name, 
-                name: user.name, 
-                role: user.role 
-              },
-              photos: form.photos
-            });
+            const doacaoData = {
+              descricao: form.description,
+              quantidade: amount,
+              categoria: form.category,
+              fotos: form.photos
+            };
+            
+            const result = await api.createDoacao(doacaoData);
             
             // Limpa o formulário
             setForm({ 
@@ -1857,12 +2087,9 @@
               previews: [] 
             });
             
-            setSuccess('Doação registrada com sucesso! ' + 
-              (donation.riskLevel === 'Alto' ? 
-                'Sua doação será analisada pela equipe.' : 
-                'Aguardando aprovação.')
-            );
+            setSuccess('Doação registrada com sucesso! Aguardando aprovação do mentor.');
             
+            // Recarregar lista de doações
             loadMine();
             
           } catch (err) {
@@ -1984,15 +2211,13 @@
                     <option value="fundos">Arrecadações de fundos (R$)</option>
                     <option value="brinquedos">Brinquedos (un)</option>
                   </select>
-                  <div style={{ display:'grid', gap:8 }}>
-                    <select className="input" value={form.team} onChange={(e)=>setForm(f=>({...f, team:e.target.value}))}>
-                      <option value="">Selecione a Equipe</option>
-                      {teams.map(t=> <option key={t} value={t}>{t}</option>)}
-                      <option value="__other">Outra (digitar abaixo)</option>
-                    </select>
-                    {form.team==='__other' && (
-                      <input className="input" placeholder="Nome da Equipe" value={form.__teamText||''} onChange={(e)=>setForm(f=>({ ...f, __teamText: e.target.value, team: '__other' }))} onBlur={()=>{ if(form.__teamText){ setForm(f=>({ ...f, team: f.__teamText })); } }} />
-                    )}
+                  <div style={{ padding: '10px', backgroundColor: 'rgba(77, 242, 194, 0.1)', borderRadius: '8px', border: '1px solid rgba(77, 242, 194, 0.3)' }}>
+                    <div style={{ fontSize: '0.9rem', color: '#4df2c2', fontWeight: '600' }}>
+                      🏢 Sua Equipe: {user?.team || 'Não definida'}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'rgba(77, 242, 194, 0.8)', marginTop: '4px' }}>
+                      As doações serão automaticamente atribuídas à sua equipe
+                    </div>
                   </div>
                   <input className="input" placeholder={placeholderFor(form.category)} value={form.amount} onChange={(e)=>setForm(f=>({...f, amount:e.target.value}))} />
                   <div style={{ display:'grid', gap:8 }}>
@@ -2170,7 +2395,7 @@
       }
 
       // === Mentor: aprovação de doações pendentes ===
-      function MentorApprovalSection() {
+      function MentorApprovalSection({ user }) {
         const [pending, setPending] = useState([]);
         const [loading, setLoading] = useState(false);
         const [error, setError] = useState('');
@@ -2178,12 +2403,23 @@
         const [feedback, setFeedback] = useState('');
         const tbodyRef = React.useRef(null);
 
-        const load = () => {
-          setLoading(true); setError(''); setFeedback('');
-          try { setPending(listPending()); } catch (e) { setError('Erro ao carregar'); }
-          finally { setLoading(false); }
+        const load = async () => {
+          setLoading(true); 
+          setError(''); 
+          setFeedback('');
+          
+          try { 
+            // Carregar doações pendentes via API
+            const result = await api.getDoacoes({ status: 'pendente' });
+            setPending(result.data || []); 
+          } catch (e) { 
+            console.error('Erro ao carregar doações:', e);
+            setError('Erro ao carregar doações: ' + e.message); 
+          } finally { 
+            setLoading(false); 
+          }
         };
-        useEffect(()=>{ load(); }, []);
+        useEffect(()=>{ load(); }, [user]);
 
         useEffect(()=>{
           const tbody = tbodyRef.current;
@@ -2204,10 +2440,28 @@
           return () => tbody.removeEventListener('click', onClick);
         }, [tbodyRef]);
 
-        const doApprove = (id) => { updateDonationStatus(id, 'Aprovada'); setFeedback('Doação aprovada com sucesso.'); load(); };
-        const doReject = (id) => {
-          const motivo = prompt('Motivo da rejeição (opcional):') || null;
-          updateDonationStatus(id, 'Rejeitada', motivo); setFeedback('Doação rejeitada. Histórico atualizado.'); load();
+        const doApprove = async (id) => { 
+          try {
+            const observacoes = prompt('Observações (opcional):') || '';
+            await api.aprovarDoacao(id, observacoes);
+            setFeedback('Doação aprovada com sucesso.');
+            load();
+          } catch (error) {
+            setError('Erro ao aprovar doação: ' + error.message);
+          }
+        };
+        
+        const doReject = async (id) => {
+          try {
+            const motivo = prompt('Motivo da rejeição:');
+            if (!motivo) return;
+            
+            await api.rejeitarDoacao(id, motivo);
+            setFeedback('Doação rejeitada. Histórico atualizado.');
+            load();
+          } catch (error) {
+            setError('Erro ao rejeitar doação: ' + error.message);
+          }
         };
         const requestEvidence = (id) => {
           const reason = prompt('Descreva o que precisa ser comprovado:') || 'Verificação adicional solicitada';
@@ -2222,7 +2476,7 @@
 
         return (
           <div className="container" style={{ paddingTop: 16 }}>
-            <Card title="Aprovação de Doações" right={<button className="btn" onClick={load}>Atualizar</button>}>
+            <Card title={`Aprovação de Doações - ${user?.team || 'Grupo não definido'}`} right={<button className="btn" onClick={load}>Atualizar</button>}>
               {loading && <span>Carregando…</span>}
               {error && <div style={{ color:'#dc3545' }}>{error}</div>}
               {feedback && <div style={{ color:'#4df2c2', marginBottom:8 }}>{feedback}</div>}
@@ -2370,7 +2624,7 @@
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-            {format ? format(display) : display.toLocaleString()}
+            {format ? format(displayValue) : displayValue.toLocaleString()}
           </span>
         );
       }
@@ -2453,31 +2707,87 @@
         const BASE_URL = (window.__ENV && window.__ENV.API_URL) || 'http://localhost:3001';
 
         useEffect(() => {
-          const reload = async () => {
-            setLoading(true); setError("");
+          const loadData = () => {
+            setLoading(true);
+            setError("");
+            
             try {
-              const res = await fetch(`${BASE_URL}/api/leaders`);
-              const json = await res.json();
-              if (!res.ok) throw new Error(json?.message || `Erro HTTP ${res.status}`);
-              setLeaders(json.data || []);
-              setDonations(listAllDonations());
-            } catch (e) { setError(e.message || 'Erro ao carregar'); }
-            finally { setLoading(false); }
+              // Carrega dados mock de líderes se não existirem
+              const mockLeaders = [
+                { id: 1, name: 'Ana Silva', role: 'mentor', team: 'Equipe Alpha', email: 'ana@exemplo.com' },
+                { id: 2, name: 'João Santos', role: 'aluno', team: 'Equipe Beta', email: 'joao@exemplo.com' },
+                { id: 3, name: 'Maria Costa', role: 'mentor', team: 'Equipe Gamma', email: 'maria@exemplo.com' },
+                { id: 4, name: 'Pedro Lima', role: 'aluno', team: 'Equipe Alpha', email: 'pedro@exemplo.com' },
+                { id: 5, name: 'Carla Souza', role: 'aluno', team: 'Equipe Beta', email: 'carla@exemplo.com' }
+              ];
+              
+              setLeaders(mockLeaders);
+              
+              // Adiciona doações mock se não existirem
+              const existingDonations = listAllDonations();
+              if (existingDonations.length === 0) {
+                const mockDonations = [
+                  {
+                    id: 'mock1',
+                    description: 'Doação de alimentos',
+                    amount: 50,
+                    category: 'alimento',
+                    team: 'Equipe Alpha',
+                    status: 'Aprovada',
+                    user: { name: 'João Santos' },
+                    createdAt: new Date(Date.now() - 2*24*60*60*1000).toISOString(),
+                    updatedAt: new Date(Date.now() - 1*24*60*60*1000).toISOString()
+                  },
+                  {
+                    id: 'mock2',
+                    description: 'Doação em dinheiro',
+                    amount: 200,
+                    category: 'fundos',
+                    team: 'Equipe Beta',
+                    status: 'Aprovada',
+                    user: { name: 'Maria Costa' },
+                    createdAt: new Date(Date.now() - 5*24*60*60*1000).toISOString(),
+                    updatedAt: new Date(Date.now() - 4*24*60*60*1000).toISOString()
+                  },
+                  {
+                    id: 'mock3',
+                    description: 'Doação de brinquedos',
+                    amount: 15,
+                    category: 'brinquedos',
+                    team: 'Equipe Gamma',
+                    status: 'Pendente',
+                    user: { name: 'Ana Silva' },
+                    createdAt: new Date(Date.now() - 1*24*60*60*1000).toISOString()
+                  }
+                ];
+                
+                // Salva as doações mock no localStorage
+                lsSet(LS_KEYS.DONATIONS, mockDonations);
+                setDonations(mockDonations);
+              } else {
+                setDonations(existingDonations);
+              }
+              
+              console.log('✅ Dados do admin carregados com sucesso');
+            } catch (e) { 
+              setError(e.message || 'Erro ao carregar dados');
+              console.error('❌ Erro ao carregar dados do admin:', e);
+            } finally { 
+              setLoading(false); 
+            }
           };
 
-          reload();
+          loadData();
 
           const onStorage = (e) => {
             if (e.key === 'gl_donations' || e.key === 'gl_donations_pending' || e.key === 'gl_donations_recent') {
               setDonations(listAllDonations());
             }
           };
-          const onFocus = () => { reload(); };
+          
           window.addEventListener('storage', onStorage);
-          window.addEventListener('focus', onFocus);
           return () => {
             window.removeEventListener('storage', onStorage);
-            window.removeEventListener('focus', onFocus);
           };
         }, []);
 
@@ -3119,34 +3429,163 @@
         );
       }
 
+      // Página de Login
+      function LoginPage() {
+        const { login } = useAuth();
+        return <LoginForm onLogin={login} />;
+      }
+
+      // Página de Dashboard
+      function DashboardPage() {
+        const { user, logout } = useAuth();
+        
+        return (
+          <>
+            <Header title="Gestão de Lideranças" user={user} onLogout={logout} />
+            {user?.role === 'admin' ? (
+              <AdminDashboard />
+            ) : user?.role === 'mentor' ? (
+              <MentorApprovalSection user={user} />
+            ) : (
+              <StudentDonationsSection user={user} />
+            )}
+          </>
+        );
+      }
+
       function LoginForm({ onLogin }) {
+        console.log('📝 LoginForm iniciado');
         const [mode, setMode] = React.useState('login'); // 'login' | 'register'
         const [name, setName] = React.useState("");
         const [email, setEmail] = React.useState("");
         const [password, setPassword] = React.useState("");
         const [confirm, setConfirm] = React.useState("");
         const [role, setRole] = React.useState("aluno");
+        const [grupoId, setGrupoId] = React.useState("");
+        const [grupos, setGrupos] = React.useState([]);
+        const [loadingGrupos, setLoadingGrupos] = React.useState(false);
         const [error, setError] = React.useState("");
         const [showPwd, setShowPwd] = React.useState(true);
         const [remember, setRemember] = React.useState(true);
+        
+        // Carregar grupos disponíveis quando em modo registro
+        React.useEffect(() => {
+          if (mode === 'register') {
+            loadGrupos();
+          }
+        }, [mode]);
+        
+        const loadGrupos = async () => {
+          setLoadingGrupos(true);
+          try {
+            const data = await api.getGrupos();
+            console.log('📋 Grupos carregados da API:', data.data);
+            setGrupos(data.data || []);
+          } catch (error) {
+            console.error('❌ Erro ao carregar grupos:', error);
+            // Fallback para dados mock em caso de erro
+            const gruposMock = [
+              { id: 1, nome: 'Equipe Alpha', mentor_id: null },
+              { id: 2, nome: 'Equipe Beta', mentor_id: null },
+              { id: 3, nome: 'Equipe Gamma', mentor_id: null },
+              { id: 4, nome: 'Equipe Delta', mentor_id: null }
+            ];
+            setGrupos(gruposMock);
+          } finally {
+            setLoadingGrupos(false);
+          }
+        };
 
-        const submit = (e) => {
+        const submit = async (e) => {
           e.preventDefault();
           setError("");
           if (mode === 'login') {
             if (!email || !password) { setError('Informe email e senha'); return; }
-            const finalName = email?.split('@')[0] || 'Usuário';
-            onLogin({ name: finalName, role });
+            
+            try {
+              const data = await api.login(email, password);
+              
+              // Login bem-sucedido
+              const userData = {
+                name: data.data.user.nome,
+                email: data.data.user.email,
+                role: data.data.user.role,
+                team: data.data.user.grupo_nome,
+                grupo_id: data.data.user.grupo_id
+              };
+              
+              // Salvar token se disponível
+              if (data.data.token) {
+                localStorage.setItem('auth_token', data.data.token);
+              }
+              
+              onLogin(userData);
+            } catch (error) {
+              console.error('Erro no login:', error);
+              setError(error.message || 'Erro de conexão. Verifique se o servidor está rodando.');
+            }
           } else {
-            if (!name || !email || !password || !confirm) { setError('Preencha todos os campos'); return; }
-            if (password !== confirm) { setError('As senhas não conferem'); return; }
-            onLogin({ name, role });
+            // Validações para registro
+            if (!name || !email || !password || !confirm) { 
+              setError('Preencha todos os campos'); 
+              return; 
+            }
+            if (!grupoId) { 
+              setError('Selecione um grupo'); 
+              return; 
+            }
+            if (password !== confirm) { 
+              setError('As senhas não conferem'); 
+              return; 
+            }
+            if (password.length < 6) { 
+              setError('A senha deve ter pelo menos 6 caracteres'); 
+              return; 
+            }
+            
+            // Verificar se grupo já tem mentor (se role for mentor)
+            if (role === 'mentor') {
+              const grupoSelecionado = grupos.find(g => g.id == grupoId);
+              if (grupoSelecionado && grupoSelecionado.mentor_id) {
+                setError('Este grupo já possui um mentor. Escolha outro grupo.');
+                return;
+              }
+            }
+            
+            try {
+              const data = await api.register({
+                nome: name,
+                email: email,
+                senha: password,
+                role: role,
+                grupo_id: grupoId
+              });
+              
+              // Registro bem-sucedido
+              const userData = {
+                name: data.data.user.nome,
+                email: data.data.user.email,
+                role: data.data.user.role,
+                team: data.data.user.grupo_nome,
+                grupo_id: data.data.user.grupo_id
+              };
+              
+              // Salvar token se disponível
+              if (data.data.token) {
+                localStorage.setItem('auth_token', data.data.token);
+              }
+              
+              onLogin(userData);
+            } catch (error) {
+              console.error('Erro no registro:', error);
+              setError(error.message || 'Erro de conexão. Verifique se o servidor está rodando.');
+            }
           }
         };
 
         const Title = () => (
           <div className="login-title">
-            Gestão de Doações<br />Lideranças Empáticas
+            Gestão de Doações - Lideranças Empáticas
           </div>
         );
 
@@ -3164,13 +3603,30 @@
               <form onSubmit={submit} className="login-form anim-fade">
                 {mode === 'register' && (
                   <>
-                    <input className="input" placeholder="Nome completo" value={name} onChange={(e)=>setName(e.target.value)} />
-                    <input className="input" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
-                    <select className="input" value={role} onChange={(e)=>setRole(e.target.value)}>
+                    <input className="input" placeholder="Nome completo" value={name} onChange={(e)=>setName(e.target.value)} required />
+                    <input className="input" type="email" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} required />
+                    <select className="input" value={role} onChange={(e)=>setRole(e.target.value)} required>
                       <option value="aluno">Aluno</option>
                       <option value="mentor">Mentor</option>
-                      <option value="admin">Admin</option>
                     </select>
+                    <select className="input" value={grupoId} onChange={(e)=>setGrupoId(e.target.value)} required style={{borderColor: !grupoId ? '#ff6b6b' : ''}} disabled={loadingGrupos}>
+                      <option value="">{loadingGrupos ? 'Carregando grupos...' : 'Selecione um grupo *'}</option>
+                      {grupos.map(grupo => (
+                        <option key={grupo.id} value={grupo.id} disabled={role === 'mentor' && grupo.mentor_id}>
+                          {grupo.nome} {role === 'mentor' && grupo.mentor_id ? '(Já tem mentor)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                    {role === 'mentor' && (
+                      <div style={{fontSize: '0.85rem', color: '#4df2c2', marginTop: '-10px', marginBottom: '10px'}}>
+                        💡 Como mentor, você será automaticamente atribuído ao grupo selecionado
+                      </div>
+                    )}
+                    {!grupoId && (
+                      <div style={{fontSize: '0.85rem', color: '#ff6b6b', marginTop: '-10px', marginBottom: '10px'}}>
+                        ⚠️ Seleção de grupo é obrigatória
+                      </div>
+                    )}
                     <div className="input-group">
                       <input
                         className="input"
@@ -3209,11 +3665,11 @@
                 )}
                 {mode === 'login' && (
                   <>
-                    <input className="input" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
+                    <input className="input" type="email" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
                     <select className="input" value={role} onChange={(e)=>setRole(e.target.value)}>
                       <option value="aluno">Aluno</option>
                       <option value="mentor">Mentor</option>
-                      <option value="admin">Admin</option>
+                      <option value="admin">Admin (Apenas para administradores)</option>
                     </select>
                     <div className="input-group">
                       <input
@@ -3253,38 +3709,218 @@
         );
       }
 
+      // Componente principal com roteamento
       function App() {
-        const [user, setUser] = useState(() => {
-          try { return JSON.parse(localStorage.getItem('gl_user') || 'null'); } catch { return null; }
-        });
+        const { route } = useRouter();
+        const { user, loading } = useAuth();
+        
+        if (loading) {
+          return (
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center', 
+              height: '100vh',
+              color: '#4df2c2'
+            }}>
+              <div>Carregando...</div>
+            </div>
+          );
+        }
+        
+        // Roteamento baseado na rota atual
+        switch (route) {
+          case '/login':
+            return <LoginPage />;
+          case '/dashboard':
+            return (
+              <ProtectedRoute user={user}>
+                <DashboardPage />
+              </ProtectedRoute>
+            );
+          case '/admin':
+            return (
+              <ProtectedRoute user={user} requiredRole="admin">
+                <AdminPage />
+              </ProtectedRoute>
+            );
+          default:
+            // Redirecionamento baseado no estado do usuário
+            if (user) {
+              Router.navigate('/dashboard');
+            } else {
+              Router.navigate('/login');
+            }
+            return null;
+        }
+      }
 
-        const handleLogin = (u) => {
-          setUser(u);
-          localStorage.setItem('gl_user', JSON.stringify(u));
-        };
-        const handleLogout = () => {
-          setUser(null);
-          localStorage.removeItem('gl_user');
-        };
-
-        if (!user) return <LoginForm onLogin={handleLogin} />;
-
+      // Página específica do Admin
+      function AdminPage() {
+        const { user, logout } = useAuth();
+        
         return (
           <>
-            <Header title="Gestão de Lideranças" user={user} onLogout={handleLogout} />
-            {user.role === 'admin' ? (
-              <AdminDashboard />
-            ) : user.role === 'mentor' ? (
-              <MentorApprovalSection />
-            ) : (
-              <StudentDonationsSection user={user} />
-            )}
+            <Header title="Gestão de Lideranças - Admin" user={user} onLogout={logout} />
+            <AdminDashboard />
           </>
         );
       }
 
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(<App />);
+
+      // Função para mostrar erros na tela
+      function ErrorBoundary({ children }) {
+        const [hasError, setHasError] = useState(false);
+        const [error, setError] = useState(null);
+        
+        useEffect(() => {
+          const errorHandler = (errorEvent) => {
+            setHasError(true);
+            setError(errorEvent.error || 'Ocorreu um erro desconhecido');
+            console.error('Erro capturado:', errorEvent.error);
+            return false;
+          };
+          
+          window.addEventListener('error', errorHandler);
+          return () => window.removeEventListener('error', errorHandler);
+        }, []);
+        
+        if (hasError) {
+          return (
+            <div style={{
+              padding: '20px',
+              color: 'white',
+              backgroundColor: '#ff4444',
+              fontFamily: 'monospace',
+              whiteSpace: 'pre-wrap',
+              maxWidth: '800px',
+              margin: '0 auto',
+              borderRadius: '8px',
+              boxShadow: '0 0 10px rgba(0,0,0,0.5)'
+            }}>
+              <h2>⚠️ Ocorreu um erro na aplicação</h2>
+              <p>Por favor, recarregue a página. Se o problema persistir, entre em contato com o suporte.</p>
+              <details style={{ marginTop: '10px' }}>
+                <summary>Detalhes do erro</summary>
+                <div style={{
+                  backgroundColor: 'rgba(0,0,0,0.2)',
+                  padding: '10px',
+                  marginTop: '10px',
+                  borderRadius: '4px',
+                  overflowX: 'auto'
+                }}>
+                  {error && error.toString()}
+                  {error && error.stack && (
+                    <pre style={{ margin: '10px 0 0 0' }}>{error.stack}</pre>
+                  )}
+                </div>
+              </details>
+              <button 
+                onClick={() => window.location.reload()}
+                style={{
+                  marginTop: '15px',
+                  padding: '8px 16px',
+                  background: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                Recarregar Página
+              </button>
+            </div>
+          );
+        }
+        
+        return children;
+      }
+
+      // Função para limpar todos os dados locais (para testes)
+      window.clearAllData = function() {
+        if (confirm('⚠️ Isso irá limpar TODOS os dados locais. Continuar?')) {
+          localStorage.clear();
+          sessionStorage.clear();
+          console.log('🧹 Todos os dados locais foram limpos!');
+          alert('✅ Dados locais limpos! A página será recarregada.');
+          window.location.reload();
+        }
+      };
+      
+      // Sistema de depuração e renderização da aplicação
+      console.log('🚀 Iniciando aplicação...');
+      console.log('React:', typeof React);
+      console.log('ReactDOM:', typeof ReactDOM);
+      console.log('useState:', typeof useState);
+      console.log('useEffect:', typeof useEffect);
+      console.log('useRef:', typeof useRef);
+      console.log('LS_KEYS:', LS_KEYS);
+      console.log('lsGet function:', typeof lsGet);
+      console.log('lsSet function:', typeof lsSet);
+      console.log('💡 Para limpar dados locais, execute: clearAllData()');
+      
+      // Verifica se o elemento root existe
+      const rootElement = document.getElementById('root');
+      console.log('Elemento root encontrado:', !!rootElement);
+      
+      if (!rootElement) {
+        document.body.innerHTML = `
+          <div style="padding:20px;color:white;background:#ff4444;font-family:monospace;">
+            <h2>❌ Erro: Elemento 'root' não encontrado</h2>
+            <p>O elemento com id='root' não foi encontrado no DOM.</p>
+          </div>
+        `;
+        throw new Error('Elemento root não encontrado');
+      }
+
+      // Renderização da aplicação com tratamento de erros
+      try {
+        console.log('📦 Criando root do React...');
+        
+        // Verifica se todas as dependências estão disponíveis
+        if (typeof React === 'undefined') {
+          throw new Error('React não está carregado');
+        }
+        if (typeof ReactDOM === 'undefined') {
+          throw new Error('ReactDOM não está carregado');
+        }
+        if (typeof useState === 'undefined') {
+          throw new Error('useState não está disponível');
+        }
+        if (typeof useEffect === 'undefined') {
+          throw new Error('useEffect não está disponível');
+        }
+        if (typeof useRef === 'undefined') {
+          throw new Error('useRef não está disponível');
+        }
+        
+        const root = ReactDOM.createRoot(rootElement);
+        
+        console.log('🎨 Renderizando aplicação...');
+        
+        // Renderização com roteamento
+        root.render(
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
+        );
+        
+        console.log('✅ Aplicação renderizada com sucesso!');
+        
+      } catch (error) {
+        console.error('❌ Erro ao renderizar a aplicação:', error);
+        rootElement.innerHTML = `
+          <div style="padding:20px;color:white;background:#ff4444;font-family:monospace;">
+            <h2>❌ Erro ao carregar a aplicação</h2>
+            <p><strong>Erro:</strong> ${error.message}</p>
+            <p><strong>Stack:</strong></p>
+            <pre style="background:rgba(0,0,0,0.2);padding:10px;border-radius:4px;overflow:auto;">${error.stack}</pre>
+            <button onclick="window.location.reload()" style="margin-top:10px;padding:8px 16px;background:white;color:black;border:none;border-radius:4px;cursor:pointer;">
+              🔄 Recarregar Página
+            </button>
+          </div>
+        `;
+      }
     </script>
   </body>
 </html>

@@ -2,6 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { testConnection } from './config/database.js';
+
+// Import routes
+import authRoutes from './routes/authRoutes.js';
+import usuarioRoutes from './routes/usuarioRoutes.js';
+import grupoRoutes from './routes/grupoRoutes.js';
+import doacaoRoutes from './routes/doacaoRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 import leaderRoutes from './routes/leaderRoutes.js';
 
 dotenv.config();
@@ -14,7 +21,8 @@ const PORT = process.env.PORT || 3001;
 const defaultOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5500',
-  'http://localhost:5500'
+  'http://localhost:5500',
+  'http://localhost:8000'
 ];
 const envOrigins = (process.env.ORIGIN || '')
   .split(',')
@@ -32,10 +40,16 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/grupos', grupoRoutes);
+app.use('/api/doacoes', doacaoRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/uploads', uploadRoutes);
 app.use('/api/leaders', leaderRoutes);
 
 // Health check
