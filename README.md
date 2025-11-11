@@ -14,16 +14,11 @@
 ## Professores Orientadores: <a href="https://www.linkedin.com/in/cristina-machado-corr%C3%AAa-leite-630309160/">Cristina Machado Corrêa Leite</a>, <a href="https://www.linkedin.com/in/dolemes/">David de Oliveira Lemes</a>, <a href="https://www.linkedin.com/in/leonardo-fabris-lugoboni-a3369416/">Leonardo Fabris Lugoboni</a>, Katia Milani Lara Bossi, Francisco de Souza Escobar
 
 
-## Descrição
-
 <p align="center">
 <img width="450" height="450" alt="logo dev leaders" src="https://github.com/user-attachments/assets/0565a7c5-2df8-4aa2-9f4c-e82369d371cf" />
 
 
-
-Sistema web para gerenciar doações em organizações, com controle de usuários, aprovação de doações e upload de comprovantes.
-
-## Funcionalidades
+## Funcionalidades do Projeto
 - **Autenticação JWT** com 3 tipos de usuário (Admin, Mentor, Aluno)
 - **CRUD completo** de usuários, grupos e doações
 - **Upload de arquivos** com Multer (fotos/comprovantes)
