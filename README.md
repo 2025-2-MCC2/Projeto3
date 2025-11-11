@@ -32,15 +32,6 @@
 
 Utilize o link [https://chooser-beta.creativecommons.org/](https://chooser-beta.creativecommons.org/) para fazer uma licença CC BY 4.0.
 
-## 🎓 Referências
-
-Aqui estão as referências usadas no projeto.
-
-1.  [https://github.com/iuricode/readme-template](https://github.com/iuricode/readme-template)
-2.  [https://github.com/gabrieldejesus/readme-model](https://github.com/gabrieldejesus/readme-model)
-3.  [https://chooser-beta.creativecommons.org/](https://chooser-beta.creativecommons.org/)
-4.  [https://freesound.org/](https://freesound.org/)
-5.  [https://www.toptal.com/developers/gitignore](https://www.toptal.com/developers/gitignore)
 
 Modelagem Banco de Dados
 
