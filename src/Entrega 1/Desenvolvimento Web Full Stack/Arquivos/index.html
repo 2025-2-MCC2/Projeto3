@@ -1899,7 +1899,7 @@
                 previews: [...f.previews, ...uploadedFiles.map(file => file.url)].slice(0, 6)
               }));
               
-              console.log('✅ Upload realizado com sucesso:', uploadedFiles);
+              // Upload realizado com sucesso
             } else {
               throw new Error(uploadResult.message || 'Erro no upload');
             }
@@ -2413,7 +2413,7 @@
             const result = await api.getDoacoes({ status: 'pendente' });
             setPending(result.data || []); 
           } catch (e) { 
-            console.error('Erro ao carregar doações:', e);
+            // Erro ao carregar doações
             setError('Erro ao carregar doações: ' + e.message); 
           } finally { 
             setLoading(false); 
@@ -3479,10 +3479,8 @@
           setLoadingGrupos(true);
           try {
             const data = await api.getGrupos();
-            console.log('📋 Grupos carregados da API:', data.data);
             setGrupos(data.data || []);
           } catch (error) {
-            console.error('❌ Erro ao carregar grupos:', error);
             // Fallback para dados mock em caso de erro
             const gruposMock = [
               { id: 1, nome: 'Equipe Alpha', mentor_id: null },
@@ -3848,20 +3846,7 @@
       };
       
       // Sistema de depuração e renderização da aplicação
-      console.log('🚀 Iniciando aplicação...');
-      console.log('React:', typeof React);
-      console.log('ReactDOM:', typeof ReactDOM);
-      console.log('useState:', typeof useState);
-      console.log('useEffect:', typeof useEffect);
-      console.log('useRef:', typeof useRef);
-      console.log('LS_KEYS:', LS_KEYS);
-      console.log('lsGet function:', typeof lsGet);
-      console.log('lsSet function:', typeof lsSet);
-      console.log('💡 Para limpar dados locais, execute: clearAllData()');
-      
-      // Verifica se o elemento root existe
-      const rootElement = document.getElementById('root');
-      console.log('Elemento root encontrado:', !!rootElement);
+        const rootElement = document.getElementById('root');
       
       if (!rootElement) {
         document.body.innerHTML = `
@@ -3875,7 +3860,6 @@
 
       // Renderização da aplicação com tratamento de erros
       try {
-        console.log('📦 Criando root do React...');
         
         // Verifica se todas as dependências estão disponíveis
         if (typeof React === 'undefined') {
@@ -3896,16 +3880,12 @@
         
         const root = ReactDOM.createRoot(rootElement);
         
-        console.log('🎨 Renderizando aplicação...');
-        
         // Renderização com roteamento
         root.render(
           <ErrorBoundary>
             <App />
           </ErrorBoundary>
         );
-        
-        console.log('✅ Aplicação renderizada com sucesso!');
         
       } catch (error) {
         console.error('❌ Erro ao renderizar a aplicação:', error);

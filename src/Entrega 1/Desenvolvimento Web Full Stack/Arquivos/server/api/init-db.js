@@ -1,33 +1,23 @@
-import pg from 'pg';
+import { executeQuery, testConnection } from '../src/config/database.js';
 import bcrypt from 'bcrypt';
-import dotenv from 'dotenv';
 
-dotenv.config();
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ 
+      success: false, 
+      message: 'Método não permitido. Use POST.' 
+    });
+  }
 
-const { Client } = pg;
-
-const dbConfig = {
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT || 5432,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-};
-
-async function createDatabase() {
-  let client;
-  
   try {
-    client = new Client(dbConfig);
-    await client.connect();
-    console.log('✅ Conectado ao PostgreSQL');
+    // Testar conexão
+    const connected = await testConnection();
+    if (!connected) {
+      throw new Error('Não foi possível conectar ao banco de dados');
+    }
     
-    // Criar tabelas
-    console.log('🏗️ Criando estrutura do banco...');
-    
-    // Tabela grupos
-    await client.query(`
+    // Criar tabelas (PostgreSQL syntax)
+    await executeQuery(`
       CREATE TABLE IF NOT EXISTS grupos (
         id SERIAL PRIMARY KEY,
         nome VARCHAR(100) UNIQUE NOT NULL,
@@ -38,10 +28,8 @@ async function createDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('   ✅ Tabela grupos criada');
     
-    // Tabela usuarios
-    await client.query(`
+    await executeQuery(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
         nome VARCHAR(100) NOT NULL,
@@ -54,10 +42,8 @@ async function createDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('   ✅ Tabela usuarios criada');
     
-    // Tabela doacoes
-    await client.query(`
+    await executeQuery(`
       CREATE TABLE IF NOT EXISTS doacoes (
         id SERIAL PRIMARY KEY,
         descricao TEXT NOT NULL,
@@ -75,10 +61,8 @@ async function createDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('   ✅ Tabela doacoes criada');
     
-    // Tabela auditoria
-    await client.query(`
+    await executeQuery(`
       CREATE TABLE IF NOT EXISTS auditoria (
         id SERIAL PRIMARY KEY,
         doacao_id INTEGER REFERENCES doacoes(id) ON DELETE CASCADE,
@@ -90,27 +74,21 @@ async function createDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('   ✅ Tabela auditoria criada');
     
     // Criar índices
-    await client.query('CREATE INDEX IF NOT EXISTS idx_usuarios_email ON usuarios(email)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_doacoes_status ON doacoes(status)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_doacoes_grupo ON doacoes(grupo_id)');
-    console.log('   ✅ Índices criados');
-    
-    // Inserir dados iniciais
-    console.log('📊 Inserindo dados iniciais...');
+    await executeQuery('CREATE INDEX IF NOT EXISTS idx_usuarios_email ON usuarios(email)');
+    await executeQuery('CREATE INDEX IF NOT EXISTS idx_doacoes_status ON doacoes(status)');
+    await executeQuery('CREATE INDEX IF NOT EXISTS idx_doacoes_grupo ON doacoes(grupo_id)');
     
     // Verificar se admin já existe
-    const adminCheck = await client.query('SELECT COUNT(*) FROM usuarios WHERE role = $1', ['admin']);
+    const adminCheck = await executeQuery('SELECT COUNT(*) as count FROM usuarios WHERE role = $1', ['admin']);
     
-    if (parseInt(adminCheck.rows[0].count) === 0) {
+    if (parseInt(adminCheck[0].count) === 0) {
       const adminPassword = await bcrypt.hash('admin123', 10);
-      await client.query(
+      await executeQuery(
         'INSERT INTO usuarios (nome, email, senha_hash, role) VALUES ($1, $2, $3, $4)',
         ['Administrador', 'admin@sistema.com', adminPassword, 'admin']
       );
-      console.log('   ✅ Usuário admin criado');
     }
     
     // Inserir grupos de exemplo
@@ -122,25 +100,31 @@ async function createDatabase() {
     ];
     
     for (const [nome, descricao] of grupos) {
-      await client.query(
-        'INSERT INTO grupos (nome, descricao) VALUES ($1, $2) ON CONFLICT (nome) DO NOTHING',
-        [nome, descricao]
-      );
+      try {
+        await executeQuery(
+          'INSERT INTO grupos (nome, descricao) VALUES ($1, $2)',
+          [nome, descricao]
+        );
+      } catch (error) {
+        // Ignora erro se já existir
+        if (!error.message.includes('duplicate key')) {
+          throw error;
+        }
+      }
     }
-    console.log('   ✅ Grupos de exemplo criados');
     
-    console.log('\n🎉 Database PostgreSQL criado com sucesso!');
-    console.log('\n📋 Credenciais padrão:');
-    console.log('   Admin: admin@sistema.com / admin123');
+    res.json({
+      success: true,
+      message: 'Banco de dados inicializado com sucesso!',
+      data: {
+        admin: 'admin@sistema.com / admin123'
+      }
+    });
     
   } catch (error) {
-    console.error('❌ Erro ao criar database:', error);
-    process.exit(1);
-  } finally {
-    if (client) {
-      await client.end();
-    }
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao inicializar banco: ' + error.message
+    });
   }
 }
-
-createDatabase();

@@ -78,25 +78,12 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Start server
-async function startServer() {
-  try {
-    // Test database connection
-    const dbConnected = await testConnection();
-    
-    if (!dbConnected) {
-      console.log('⚠️  Servidor iniciado sem conexão com banco de dados');
-    }
-    
-    app.listen(PORT, () => {
-      console.log(`🚀 Servidor rodando na porta ${PORT}`);
-      console.log(`📍 Health check: http://localhost:${PORT}/health`);
-      console.log(`📍 API Leaders: http://localhost:${PORT}/api/leaders`);
-    });
-  } catch (error) {
-    console.error('❌ Erro ao iniciar servidor:', error);
-    process.exit(1);
-  }
+// Start server (apenas se não for Vercel)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    testConnection();
+  });
 }
 
-startServer();
+// Export para Vercel
+export default app;
