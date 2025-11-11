@@ -35,3 +35,7 @@
 
 A descrição completa do banco de dados está disponível neste arquivo:  [Entrega 2](./src/Entrega%202/Projetos%20em%20Banco%20de%20Dados/README.md)
 
+
+## Link do Projeto
+
+ O Frontend e o Backend podem ser acessados publicamente através do link: https://gestaoliderancasempaticas.netlify.app/
